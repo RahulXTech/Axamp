@@ -1,0 +1,22 @@
+# Secrets — never commit these
+.env
+.env.local
+.env.*.local
+
+# Installed packages and build output
+node_modules/
+dist/
+
+# Hosting and editor files
+.vercel/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Unused raw footage (not referenced by the site)
+src/components/*.mp4
+
+# Mailer settings written by the build (holds the API key)
+public/api/config.php
