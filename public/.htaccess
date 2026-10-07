@@ -1,0 +1,19 @@
+# Hostinger (Apache / LiteSpeed) rules for the built site in public_html
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # The mailer's settings (API key) are never served
+  RewriteRule ^api/config\.php$ - [F,L]
+
+  # Contact form: POST /api/contact → the PHP mailer (api/contact.php)
+  RewriteRule ^api/contact/?$ api/contact.php [L]
+
+  # React Router: /about, /contact, … load the app instead of a 404
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
