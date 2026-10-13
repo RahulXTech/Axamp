@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Images, Play } from 'lucide-react'
 import { useModal } from '../lib/modal'
-import { useVideoAvailable } from '../lib/hooks'
+import { useStopDownloadWhenHidden, useVideoAvailable, useVideoSlot } from '../lib/hooks'
 import { LogoMark } from './Logo'
 
 const IG_WIDTH = 340
 
-// `near`    → this card may load/decode media (active ± 1)
+// `near`    → this card may load an Instagram embed (active ± 1)
 // `playing` → muted loop should run (near + section on screen)
+// `active`  → this is the front card
 export default function VideoCard({ reel, near, playing, active }) {
   const { reel: openReel, open } = useModal()
   const hasMp4 = useVideoAvailable(reel.video)
@@ -18,7 +19,10 @@ export default function VideoCard({ reel, near, playing, active }) {
   const videoRef = useRef(null)
   const shouldPlay = playing && !openReel
 
-  const showMp4 = near && hasMp4 === true
+  // Only the front card of an on-screen section downloads its MP4 — the others
+  // show their poster, so the video being watched gets the whole connection.
+  // (Phones also cap how many reels load at once — see useVideoSlot.)
+  const showMp4 = useVideoSlot(active && playing && hasMp4 === true)
   const showIg  = near && hasMp4 === false && reel.type === 'instagram' && !reel.image
   const showYt  = shouldPlay && reel.type === 'youtube'
 
@@ -45,6 +49,8 @@ export default function VideoCard({ reel, near, playing, active }) {
     if (shouldPlay) v.play().catch(() => {})
     else v.pause()
   }, [shouldPlay, showMp4])
+
+  useStopDownloadWhenHidden(videoRef, showMp4)
 
   const soon = reel.placeholder
   const onKey = (e) => {

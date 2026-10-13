@@ -140,6 +140,24 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* ─── Phones / tablets: lighter on GPU memory ─────────────────────────
+   iOS Safari silently reloads the tab (back to the top) when the page
+   uses too much memory. A full-screen blended layer and big CSS blurs
+   (each blur is rendered at its size + blur radius, ×3 on retina) are
+   the heaviest effects here, and barely visible on a phone. */
+@media (pointer: coarse) {
+  .grain {
+    display: none;
+  }
+
+  /* Same soft glow, faded with a mask instead of a blur filter */
+  .glow {
+    filter: none;
+    -webkit-mask-image: radial-gradient(closest-side, #000, transparent);
+    mask-image: radial-gradient(closest-side, #000, transparent);
+  }
+}
+
 /* ─── Glass utility (kept as class — used dynamically in JSX) ─────────── */
 
 .glass {

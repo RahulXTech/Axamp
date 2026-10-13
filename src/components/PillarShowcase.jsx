@@ -10,7 +10,7 @@ import 'swiper/css/effect-coverflow'
 
 import { resolveReel } from '../data/work'
 import { compact } from '../data/reels'
-import { useVideoAvailable } from '../lib/hooks'
+import { useStopDownloadWhenHidden, useVideoAvailable, useVideoSlot } from '../lib/hooks'
 import { useModal } from '../lib/modal'
 import { PillarIcon } from './icons'
 import IntroPanel, { PillLabel } from './IntroPanel'
@@ -208,6 +208,7 @@ function ReelStage({ pillar, reels, inView }) {
                     reel={reel}
                     rank={(i % n) + 1}
                     isActive={isActive}
+                    onScreen={isActive && inView}
                     playing={isActive && inView && !openReel}
                     onOpen={() => isActive && open(reel)}
                   />
@@ -322,23 +323,27 @@ function Heartbeat() {
    CARDS
 ============================================================ */
 
-/* One reel, styled like an Instagram reel; the centred one plays */
-function ShowcaseCard({ reel, rank, isActive, playing, onOpen }) {
+/* One reel, styled like an Instagram reel; the centred one plays.
+   `onScreen` — centred card of a section on screen: the only one that downloads its MP4 */
+function ShowcaseCard({ reel, rank, isActive, onScreen, playing, onOpen }) {
   const hasMp4 = useVideoAvailable(isActive && !reel.image ? reel.video : null)
   const [poster, setPoster] = useState(reel.poster)
   const [ready, setReady] = useState(false)
   const videoRef = useRef(null)
+  const showMp4 = useVideoSlot(onScreen && hasMp4 === true)
+
+  useStopDownloadWhenHidden(videoRef, showMp4)
 
   useEffect(() => {
-    if (!isActive) setReady(false)
-  }, [isActive])
+    if (!showMp4) setReady(false)
+  }, [showMp4])
 
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
     if (playing) v.play().catch(() => {})
     else v.pause()
-  }, [playing, hasMp4])
+  }, [playing, showMp4])
 
   const counts = [
     { key: 'likes', Icon: Heart, n: reel.likes, like: true },
@@ -375,7 +380,7 @@ function ShowcaseCard({ reel, rank, isActive, playing, onOpen }) {
             onError={() => setPoster((s) => (s !== reel.posterFallback ? reel.posterFallback : null))}
           />
         )}
-        {isActive && hasMp4 && (
+        {showMp4 && (
           <video
             ref={videoRef}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${ready ? 'opacity-100' : 'opacity-0'}`}

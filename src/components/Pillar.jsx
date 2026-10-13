@@ -304,7 +304,7 @@ function ReelRing({ reels, inView, cardHeight, tone, tilt = -9, direction = 1, m
       {/* Spotlight behind the front of the ring */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+        className="glow pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
         style={{
           width: `calc(${cardWidth} * 2.2)`,
           height: `calc(${cardHeight} * 0.85)`,
@@ -317,7 +317,7 @@ function ReelRing({ reels, inView, cardHeight, tone, tilt = -9, direction = 1, m
       {/* Floor shadow + tone glow under the ring */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-[50%] blur-2xl"
+        className="glow pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-[50%] blur-2xl"
         style={{
           top: `calc(50% + ${cardHeight} / 2 - 10px)`,
           width: `${FILL * 92}%`,
@@ -612,6 +612,11 @@ function PillarDesktop({ pillar, index, reels, inView }) {
 
 function PillarMobile({ pillar, index, reels, inView }) {
   const [active, setActive] = useState(0)
+  // Six 3D rings of full-size cards are a lot of GPU memory for a phone
+  // (iOS Safari reloads the tab when it runs out) — only rings within a
+  // screen of the viewport are built; the box keeps its height meanwhile.
+  const ringBoxRef = useRef(null)
+  const near = useInView(ringBoxRef, '100% 0px')
 
   const cardHeight = 'min(calc(66vw * 16 / 9), 62svh)'
 
@@ -634,8 +639,8 @@ function PillarMobile({ pillar, index, reels, inView }) {
         <IntroPanel pillar={pillar} index={index} compact />
       </div>
 
-      <div className="mt-3" style={{ height: `calc(${cardHeight} * 1.06)` }}>
-        <ReelRing
+      <div ref={ringBoxRef} className="mt-3" style={{ height: `calc(${cardHeight} * 1.06)` }}>
+        {near && <ReelRing
           reels={reels}
           inView={inView}
           tone={pillar.tone}
@@ -643,7 +648,7 @@ function PillarMobile({ pillar, index, reels, inView }) {
           minSlots={SLOTS_PHONE}
           centerFront
           onActiveChange={setActive}
-        />
+        />}
       </div>
 
       <div

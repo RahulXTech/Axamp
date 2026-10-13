@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { resolveReel } from '../data/work'
-import { useInView, useVideoAvailable } from '../lib/hooks'
+import { useInView, useStopDownloadWhenHidden, useVideoAvailable, useVideoSlot } from '../lib/hooks'
 import { scrollToTarget } from '../lib/scroll'
 import { PillarIcon } from './icons'
 
@@ -98,6 +98,8 @@ function InstagramReelEmbed({ id }) {
 ------------------------------------------------------------------ */
 function ReelMedia({ reel, playing }) {
   const hasMp4 = useVideoAvailable(reel.image ? null : reel.video)
+  // Mounted only while it plays — six cards share the screen on phones
+  const showMp4 = useVideoSlot(playing && hasMp4 === true)
   const [poster, setPoster] = useState(reel.poster)
   const videoRef = useRef(null)
 
@@ -106,7 +108,9 @@ function ReelMedia({ reel, playing }) {
     if (!v) return
     if (playing) v.play().catch(() => {})
     else v.pause()
-  }, [playing, hasMp4])
+  }, [playing, showMp4])
+
+  useStopDownloadWhenHidden(videoRef, showMp4)
 
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -120,7 +124,7 @@ function ReelMedia({ reel, playing }) {
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[var(--ease)] group-hover:scale-[1.04]"
         />
       )}
-      {hasMp4 && (
+      {showMp4 && (
         <video
           ref={videoRef}
           src={reel.video}
@@ -155,15 +159,13 @@ function PillarCard({ pillar, index, isActive }) {
     }
   })()
 
-  /* Load the media once the card is roughly on screen (keeps the first
-     page load light with six cards); play only while it's visible. */
+  /* Media is only mounted while the card is roughly on screen and is
+     released again once it's scrolled well away — six decoded videos
+     kept alive at once is enough for iOS Safari to kill (reload) the tab.
+     Plays only while visible. */
   const cardRef = useRef(null)
   const near = useInView(cardRef, '300px 0px')
   const visible = useInView(cardRef)
-  const [loaded, setLoaded] = useState(false)
-  useEffect(() => {
-    if (near) setLoaded(true)
-  }, [near])
 
   const accent = warm
     ? {
@@ -243,7 +245,7 @@ function PillarCard({ pillar, index, isActive }) {
         />
 
         {/* Layer 2 — the reel: cover, then the video (fills the card) */}
-        {reel && loaded && (
+        {reel && near && (
           <div className="absolute inset-0 z-[1]">
             <ReelMedia reel={reel} playing={visible} />
           </div>
