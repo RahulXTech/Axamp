@@ -357,8 +357,8 @@ export function Footer() {
           <div className="col-span-2 flex flex-col items-start gap-5 max-sm:gap-4 lg:col-span-1">
             <Logo onClick={go('/')} size={34} />
             <p className="max-w-[300px] text-[14.5px] leading-[1.65] text-[var(--muted)]">
-              Viral video for real estate. We don't sell leads —{' '}
-              <span className="text-white">we build proof.</span>
+              Viral video for real estate —{' '}
+              <span className="text-white">from visitors to buyers, from leads to clients, from followers to investors.</span>
             </p>
             <div className="flex gap-2.5">
               {socials.map((s) => (

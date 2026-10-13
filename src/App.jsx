@@ -15,16 +15,18 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
 
-const SITE_TITLE = 'AXAMP — We build proof.'
+const SITE_TITLE = 'AXAMP — From Leads to Sales'
 
 /*
  * Wraps every route. Runs after the page's own effects (so its pins
  * exist): starts at the top — or at the #section in the URL — and
  * wires up the page's `data-slide` animations.
  */
-function Page({ title, children }) {
+// `fullTitle` replaces the whole tab title — a short one like "About · AXAMP"
+// gets rewritten by Google into its own (it showed "About Us — AXAMP PRIVATE LIMITED")
+function Page({ title, fullTitle, children }) {
   useEffect(() => {
-    document.title = title ? `${title} · AXAMP` : SITE_TITLE
+    document.title = fullTitle ?? (title ? `${title} · AXAMP` : SITE_TITLE)
     resetScroll()
     const stopSlides = initSlides()
 
@@ -63,7 +65,7 @@ export default function App() {
           <Route path="/" element={<Page><Home /></Page>} />
           <Route path="/services" element={<Page title="Services"><Services /></Page>} />
           <Route path="/packages" element={<Page title="Packages"><Packages /></Page>} />
-          <Route path="/about" element={<Page title="About"><About /></Page>} />
+          <Route path="/about" element={<Page fullTitle="About Us — MARKETING, BRANDING & AUTOMATION"><About /></Page>} />
           <Route path="/contact" element={<Page title="Contact"><Contact /></Page>} />
           <Route path="*" element={<Page title="Page not found"><NotFound /></Page>} />
         </Routes>
