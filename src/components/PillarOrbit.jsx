@@ -187,7 +187,8 @@ function ReelOrbit({ reels, inView, cardHeight, mode = 'bottom', count = SLOTS, 
   }, [onActiveChange])
 
   const n = reels.length
-  const slots = useMemo(() => (n ? Array.from({ length: count }, (_, i) => reels[i % n]) : []), [reels, n, count])
+  // Every reel gets a card; short lists repeat to fill the orbit
+  const slots = useMemo(() => (n ? Array.from({ length: Math.max(count, n) }, (_, i) => reels[i % n]) : []), [reels, n, count])
 
   useEffect(() => {
     if (n) onActiveRef.current?.(front % n)

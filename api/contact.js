@@ -94,7 +94,7 @@ export default async function handler(req, res) {
       <table style="border-collapse:collapse;width:100%">
         ${row("Industry", industry)}
         ${row("Services", needs.join(", "))}
-        ${row("Monthly budget", budget)}
+        ${row("Marketing budget (excl. ads)", budget)}
       </table>
 
       <h3 style="margin:16px 0 4px">Message</h3>
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
     `Preferred contact: ${method || "—"}`,
     `Industry: ${industry || "—"}`,
     `Services: ${needs.join(", ") || "—"}`,
-    `Monthly budget: ${budget || "—"}`,
+    `Marketing budget (excl. ads): ${budget || "—"}`,
     "",
     `Message: ${message || "No additional message."}`,
   ].join("\n");

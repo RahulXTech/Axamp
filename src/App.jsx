@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { initSmoothScroll, resetScroll, scrollToTarget } from './lib/scroll'
 import { initSlides } from './lib/slide'
 import { ModalProvider } from './lib/modal'
-import { IndustryProvider } from './lib/industry'
+import { IndustryProvider, industryFromPath } from './lib/industry'
 import Nav from './components/Nav'
 import VideoModal from './components/VideoModal'
 import { Footer } from './components/Closing'
@@ -16,6 +16,12 @@ import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
 
 const SITE_TITLE = 'AXAMP — From Leads to Sales'
+// Tab titles for the industry pages (real estate is the home page)
+const industryTitles = { hospital: 'Hospital Marketing', university: 'University Marketing' }
+
+// iOS Safari resizes the viewport as its address bar shows / hides while
+// you scroll — don't re-measure every pin for that, only for real resizes.
+ScrollTrigger.config({ ignoreMobileResize: true })
 
 /*
  * Wraps every route. Runs after the page's own effects (so its pins
@@ -27,6 +33,9 @@ const SITE_TITLE = 'AXAMP — From Leads to Sales'
 function Page({ title, fullTitle, children }) {
   useEffect(() => {
     document.title = fullTitle ?? (title ? `${title} · AXAMP` : SITE_TITLE)
+  }, [title, fullTitle])
+
+  useEffect(() => {
     resetScroll()
     const stopSlides = initSlides()
 
@@ -37,13 +46,18 @@ function Page({ title, fullTitle, children }) {
       clearTimeout(t)
       stopSlides()
     }
-  }, [title])
+  }, [])
 
   return <main>{children}</main>
 }
 
 export default function App() {
   const location = useLocation()
+  // The three industry pages share one Home that swaps its sections in
+  // place (Home.jsx), so switching keeps your scroll position and the hero
+  // video. Every other path mounts fresh.
+  const industry = industryFromPath(location.pathname)
+  const routeKey = industry ? 'home' : location.pathname
 
   useEffect(() => {
     const stop = initSmoothScroll()
@@ -51,6 +65,8 @@ export default function App() {
     document.fonts?.ready.then(() => ScrollTrigger.refresh())
     return stop
   }, [])
+
+  const home = <Page key="home" title={industryTitles[industry]}><Home /></Page>
 
   return (
     <IndustryProvider>
@@ -60,9 +76,12 @@ export default function App() {
 
         <Nav />
 
-        {/* Keyed by path so each page mounts fresh */}
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Page><Home /></Page>} />
+        <Routes location={location} key={routeKey}>
+          {/* Real estate is the home page */}
+          <Route path="/" element={home} />
+          <Route path="/hospital" element={home} />
+          <Route path="/university" element={home} />
+          <Route path="/real-estate" element={<Navigate to="/" replace />} />
           <Route path="/services" element={<Page title="Services"><Services /></Page>} />
           <Route path="/packages" element={<Page title="Packages"><Packages /></Page>} />
           <Route path="/about" element={<Page fullTitle="About Us — MARKETING, BRANDING & AUTOMATION"><About /></Page>} />

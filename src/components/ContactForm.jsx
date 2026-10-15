@@ -29,7 +29,7 @@ const icons = {
 const STEPS = [
   { key: 'industry', title: 'What’s your business?', sub: 'Pick the one that fits best.' },
   { key: 'needs', title: 'What do you need?', sub: 'Choose as many as you like.' },
-  { key: 'budget', title: 'Monthly budget?', sub: 'A rough range is fine — or skip it.' },
+  { key: 'budget', title: 'What’s your current marketing budget?', sub: 'How much do you spend on marketing each month, excluding your ad budget?' },
   { key: 'details', title: 'Where can we reach you?', sub: 'We’ll get back to you on your preferred channel.' },
 ]
 
@@ -56,7 +56,7 @@ function compose(v) {
   if (t(v.email)) lines.push(`Email: ${t(v.email)}`)
   if (v.industry) lines.push(`Industry: ${v.industry}`)
   if (v.needs.length) lines.push(`Looking for: ${v.needs.join(', ')}`)
-  if (v.budget) lines.push(`Monthly budget: ${v.budget}`)
+  if (v.budget) lines.push(`Marketing budget (excl. ads): ${v.budget}`)
   lines.push(`Best way to reach me: ${v.method}`)
   if (t(v.message)) lines.push('', `About the project: ${t(v.message)}`)
   return lines.join('\n')

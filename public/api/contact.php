@@ -108,7 +108,7 @@ $html = '
 
       <h3 style="margin:16px 0 4px">Project details</h3>
       <table style="border-collapse:collapse;width:100%">'
-    . row('Industry', $industry) . row('Services', $services) . row('Monthly budget', $budget) . '
+    . row('Industry', $industry) . row('Services', $services) . row('Marketing budget (excl. ads)', $budget) . '
       </table>
 
       <h3 style="margin:16px 0 4px">Message</h3>
@@ -131,7 +131,7 @@ $text = implode("\n", [
     'Preferred contact: ' . $or($method),
     'Industry: ' . $or($industry),
     'Services: ' . $or($services),
-    'Monthly budget: ' . $or($budget),
+    'Marketing budget (excl. ads): ' . $or($budget),
     '',
     'Message: ' . ($message !== '' ? $message : 'No additional message.'),
 ]);

@@ -75,11 +75,11 @@ export function Closing() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-[8%] top-[18%] h-[420px] w-[420px] rounded-full bg-[rgba(83,247,251,0.10)] blur-[110px]"
+        className="glow pointer-events-none absolute left-[8%] top-[18%] h-[420px] w-[420px] rounded-full bg-[rgba(83,247,251,0.10)] blur-[110px]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-[10%] right-[6%] h-[380px] w-[380px] rounded-full bg-[rgba(255,122,80,0.10)] blur-[110px]"
+        className="glow pointer-events-none absolute bottom-[10%] right-[6%] h-[380px] w-[380px] rounded-full bg-[rgba(255,122,80,0.10)] blur-[110px]"
       />
 
       {/* Card with a slowly orbiting gradient border */}
@@ -99,7 +99,7 @@ export function Closing() {
         >
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[rgba(83,247,251,0.12)] blur-[90px]"
+            className="glow pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[rgba(83,247,251,0.12)] blur-[90px]"
           />
 
           {/* ── Left: pitch + actions ─────────────────── */}
@@ -539,14 +539,19 @@ export function Footer() {
           </button>
         </div>
 
-        {/* Giant wordmark */}
-        <div aria-hidden="true" className="pointer-events-none relative -mb-[0.18em] select-none overflow-hidden">
+        {/* Giant logo — mark + official wordmark artwork (its "a" isn't in any font).
+            Spans the content column exactly: mark 0.82em + gap 0.14em + wordmark 4.32em
+            ≈ 5.29em, so 1em = column width / 5.29. Both sit on one baseline under one fade. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none relative mx-auto mb-[clamp(14px,2.2vw,32px)] mt-[clamp(8px,1.6vw,24px)] max-w-[1280px] select-none overflow-hidden opacity-75 @container"
+        >
           <div
             ref={wordRef}
             className="
-              flex items-center justify-center gap-[0.14em]
-              font-[family-name:var(--font-display)]
-              text-[clamp(4rem,16.5vw,17rem)] font-extrabold leading-[0.85] tracking-[-0.05em]
+              flex items-end justify-between gap-[0.14em]
+              text-[length:calc(100cqw/5.29)] leading-none
+              [mask-image:linear-gradient(180deg,#000_20%,rgba(0,0,0,0.25)_100%)]
             "
           >
             <img
@@ -556,22 +561,16 @@ export function Footer() {
               draggable="false"
               loading="lazy"
               decoding="async"
-              className="
-                h-[0.8em] w-auto shrink-0
-                origin-bottom
-                opacity-60
-                [mask-image:linear-gradient(180deg,#000_0%,rgba(0,0,0,0.55)_55%,transparent_100%)]
-                drop-shadow-[0_0_40px_rgba(83,247,251,0.35)]
-              "
+              className="h-[0.8em] w-auto shrink-0 origin-bottom"
             />
-            <span
-              className="
-                bg-[linear-gradient(180deg,rgba(83,247,251,0.22)_0%,rgba(83,247,251,0.06)_55%,transparent_100%)]
-                bg-clip-text text-transparent
-              "
-            >
-              AXAMP
-            </span>
+            <img
+              src={LOGO.wordmarkLg}
+              alt=""
+              draggable="false"
+              loading="lazy"
+              decoding="async"
+              className="h-[0.56em] w-auto shrink-0"
+            />
           </div>
         </div>
       </footer>

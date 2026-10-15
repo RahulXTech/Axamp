@@ -147,7 +147,7 @@ export function Shell({ node, anim, tone = 'cyan', className = '', innerClass = 
     >
       <div className={`relative h-full overflow-hidden rounded-[25px] bg-[linear-gradient(165deg,#141f4b_0%,#0c1534_55%,#0a1129_100%)] ${innerClass}`}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full blur-3xl transition-opacity duration-500 group-hover:opacity-100" style={{ background: t.glow, opacity: 0.55 }} />
+        <div aria-hidden="true" className="glow pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full blur-3xl transition-opacity duration-500 group-hover:opacity-100" style={{ background: t.glow, opacity: 0.55 }} />
         {children}
       </div>
     </div>

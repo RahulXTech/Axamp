@@ -16,7 +16,18 @@ export const universityPillars = [
     icon: 'drone',
     objection: 'What is the campus really like?',
     answer: 'Answered on a drone and campus tour.',
-    reels: [reel('DbIUObzh4qM'), reel('DOaF6Rhjoqc')], // orientation tour · lanes of IITD
+    // Video + cover live in /public (videos/<id>.mp4, posters/<id>.webp)
+    reels: [
+      ['DcBeKFaxLbB', 'Sharda University — the campus gym, just a few steps from class'],
+      ['DXhtohok851', 'WCTM Gurgaon — campus life and next-level tech placements'],
+      ['DYM7z5MzfHM', 'LPU — inside a ₹10K/month student hostel'],
+      ['DZbtPz2NRu3', 'NIMS University — classes, conversations and coffee breaks on campus'],
+      ['DJHKFkjzqcy', 'Noida International University — from aerial views to vibrant classrooms'],
+      ['C65Ux_uoAxH', 'CGC Landran — every corner of the campus holds a story'],
+      ['DbYF_SmOqX0', 'Invertis University — a walk through world-class facilities'],
+      ['Dac9hg8IC3p', '100+ acres of campus — infrastructure, academics and sports'],
+      ['DUNkcOZjCbU', 'KIIT — labs, sports fields and stages beyond the classroom'],
+    ].map(([id, caption]) => ({ ig: `https://www.instagram.com/p/${id}/`, poster: `/posters/${id}.webp`, caption })),
   },
   {
     id: 'events',
@@ -25,7 +36,13 @@ export const universityPillars = [
     icon: 'clapper',
     objection: 'Is there life beyond the classroom?',
     answer: 'Answered at the fests and events.',
-    reels: [reel('DUESWyVE3iw'), reel('DFLiNfpTp00')], // BECon · Pravritti
+    // Official videos first — the pillar card plays the first reel inline
+    reels: [
+      { ig: 'https://www.instagram.com/p/DW-cLFsiOML/', poster: '/posters/DW-cLFsiOML.webp', caption: 'That 1% of university life — the fest nights students never forget' },
+      { ig: 'https://www.instagram.com/p/DVEesGdkrVs/', poster: '/posters/DVEesGdkrVs.webp', caption: 'ETAMAX, FCRIT — finale performances, loud cheers and goosebumps' },
+      reel('DUESWyVE3iw'), // BECon
+      reel('DFLiNfpTp00'), // Pravritti
+    ],
   },
   {
     id: 'practical',
@@ -34,7 +51,13 @@ export const universityPillars = [
     icon: 'flask',
     objection: 'Will I actually learn by doing?',
     answer: 'Answered inside the labs and workshops.',
-    reels: [reel('DOaF6Rhjoqc'), reel('DbIUObzh4qM')], // labs + drones · MakerSpace
+    // Official videos first — the pillar card plays the first reel inline
+    reels: [
+      { ig: 'https://www.instagram.com/p/DZ9-ZH0kuWZ/', poster: '/posters/DZ9-ZH0kuWZ.jpg', caption: 'JIS Education Expo 2026, Kolkata — a packed hall of students, parents and mentors' },
+      { ig: 'https://www.instagram.com/p/DX_1p_7IH2a/', poster: '/posters/DX_1p_7IH2a.jpg', caption: 'Pillai University — from AI & Robotics to Fashion Design, one campus, many futures' },
+      reel('DOaF6Rhjoqc'), // labs + drones
+      reel('DbIUObzh4qM'), // MakerSpace
+    ],
   },
   {
     id: 'alumni',

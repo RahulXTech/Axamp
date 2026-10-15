@@ -4,7 +4,7 @@ import {
   Handshake, Image, Images, LayoutDashboard, Mail, MapPin, Megaphone, MessageSquareText, MessagesSquare, Mic,
   Newspaper, Package, PanelTop, Palette, PartyPopper, PenTool, Plug, Plus, RectangleHorizontal, RectangleVertical,
   Search, Send, Share2, ShoppingCart, Smartphone, Sparkles, StickyNote, Target, Trash2, Users, Video, Workflow, X,
-  Drone, Film, Podcast,
+  Drone, Film, Podcast, Infinity as InfinityIcon,
 } from 'lucide-react'
 
 import { catalog } from '../data/pricing'
@@ -27,7 +27,7 @@ const ICONS = {
   image: Image, gallery: GalleryHorizontalEnd, box: Box, mic: Mic, drone: Drone, party: PartyPopper, poster: StickyNote,
   portrait: RectangleVertical, landscape: RectangleHorizontal, bike: Bike, pin: MapPin, sms: MessageSquareText,
   mail: Mail, panel: PanelTop, cart: ShoppingCart, workflow: Workflow, package: Package, images: Images,
-  phone: Smartphone, dashboard: LayoutDashboard, plug: Plug, film: Film, podcast: Podcast,
+  phone: Smartphone, dashboard: LayoutDashboard, plug: Plug, film: Film, podcast: Podcast, meta: InfinityIcon,
   instagram: brand(InstagramIcon), linkedin: brand(LinkedInIcon), whatsapp: brand(WhatsAppIcon),
   facebook: brand(FacebookIcon), youtube: brand(YouTubeIcon),
 }

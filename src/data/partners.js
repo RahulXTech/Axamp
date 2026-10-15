@@ -10,3 +10,5 @@ export const partners = [
   { name: 'Craftshed', type: 'Gifting', logo: '/assets/partners/craftshed.webp' },
   { name: 'Svaad House', type: 'Restaurant', logo: '/assets/partners/svaadhouse.webp' },
 ]
+
+

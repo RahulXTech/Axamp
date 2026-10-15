@@ -636,87 +636,31 @@
   to   { left: 100%; }
 }
 
-/* ── Content bento (components/ContentBento.jsx) ─────────────── */
+/* ── Content circle (components/ContentCarousel.jsx) ─────────── */
 
-/* Spotlight that follows the cursor: soft fill + lit border */
-.bento-card::before,
-.bento-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s var(--ease);
+/* Dragged sideways to spin; vertical swipes still scroll the page */
+.cr-stage {
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.bento-card::before {
-  z-index: -1;
-  background: radial-gradient(460px circle at var(--mx, 50%) var(--my, 50%), rgba(var(--spot), 0.12), transparent 45%);
+.cr-stage.is-dragging {
+  cursor: grabbing;
 }
 
-.bento-card::after {
-  padding: 1px;
-  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(var(--spot), 0.75), transparent 45%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
+.cr-stage [data-cr-card] {
+  will-change: transform;
 }
 
-.bento-card:hover::before,
-.bento-card:hover::after {
-  opacity: 1;
+.cr-stage img {
+  -webkit-user-drag: none;
 }
 
-/* Video: slow zoom, light sweep, REC blink, playhead */
-.bento-kenburns { animation: bento-kenburns 14s ease-in-out infinite alternate; }
-@keyframes bento-kenburns { from { transform: scale(1.05); } to { transform: scale(1.22) translateY(-3%); } }
-
-.bento-shine { animation: bento-shine 5s var(--ease) infinite; }
-@keyframes bento-shine { 0% { left: -40%; } 45%, 100% { left: 120%; } }
-
-.bento-blink { animation: bento-blink 1.2s steps(2, jump-none) infinite; }
-@keyframes bento-blink { 50% { opacity: 0.15; } }
-
-.bento-progress { animation: bento-progress 7s linear infinite; }
-@keyframes bento-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-
-/* Peak hours: bars breathe like a live meter */
-.bento-bar { animation: bento-bar 2.4s ease-in-out infinite; }
-@keyframes bento-bar { 50% { transform: scaleY(0.78); } }
-
-/* Storytelling: the arc draws itself, then rests */
-.bento-draw {
-  stroke-dasharray: 1;
-  animation: bento-draw 4s var(--ease) infinite;
-}
-@keyframes bento-draw {
-  0%        { stroke-dashoffset: 1; }
-  55%, 100% { stroke-dashoffset: 0; }
-}
-
-/* Fun moments: reactions float up */
-.bento-float { animation: bento-float 3s ease-out infinite backwards; }
-@keyframes bento-float {
-  0%   { transform: translateY(30px) scale(0.6); opacity: 0; }
-  15%  { opacity: 1; }
-  100% { transform: translateY(-120px) scale(1.15) rotate(-10deg); opacity: 0; }
-}
-
-/* Entertainment: hashtag rows drift */
+/* Rows of chips drifting sideways (Services page) */
 .bento-marquee { animation: bento-marquee 22s linear infinite; }
 @keyframes bento-marquee { to { transform: translateX(-50%); } }
-
-/* Interaction: messages arrive one by one, then the thread resets */
-.bento-chat { animation: bento-chat 7s var(--ease) infinite backwards; }
-@keyframes bento-chat {
-  0%       { opacity: 0; transform: translateY(10px) scale(0.96); }
-  8%, 82%  { opacity: 1; transform: none; }
-  92%, 100% { opacity: 0; transform: none; }
-}
-
-.bento-typing { animation: bento-typing 1s ease-in-out infinite; }
-@keyframes bento-typing { 50% { transform: translateY(-3px); opacity: 1; } }
 
 /* ── Contact wizard (components/ContactForm.jsx) ─────────────── */
 

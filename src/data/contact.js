@@ -18,16 +18,15 @@ export const industryFromSwitcher = {
 }
 
 export const needs = [
-  { label: 'Video shoots & reels', icon: 'clapperboard' },
+  { label: 'UGC content creation', icon: 'clapperboard' },
   { label: 'Social media management', icon: 'phone' },
-  { label: 'Performance ads', icon: 'megaphone' },
+  { label: 'Performance marketing', icon: 'megaphone' },
   { label: 'Personal branding', icon: 'mic' },
-  { label: 'Lead automation', icon: 'workflow' },
-  { label: 'Influencer campaigns', icon: 'users' },
+  { label: 'Lead-to-sale system', icon: 'workflow' },
+  { label: 'Everything', icon: 'sparkles' },
 ]
 
-// TODO(AXAMP): adjust the ranges to match your packages
-export const budgets = ['₹1 Lakh', '₹1L – ₹1.5L', '₹1.5k – ₹2L', '₹2L - ₹2.5L', 'Not sure yet']
+export const budgets = ['Below ₹1L', '₹1L – ₹2L', '₹2L – ₹3L', '₹3L – ₹4L', '₹4L – ₹5L', 'Not sure yet']
 
 export const contactMethods = ['WhatsApp', 'Call', 'Email']
 

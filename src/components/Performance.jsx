@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   ArrowRight,
+  BadgeCheck,
+  Briefcase,
   Building,
   CalendarDays,
   ChartColumn,
@@ -10,21 +12,30 @@ import {
   ChevronRight,
   Clapperboard,
   Eye,
+  FileText,
   Flame,
   Globe,
   Heart,
   Infinity as InfinityIcon,
+  Laptop,
+  Lock,
   MessageCircle,
+  MessageSquare,
   MessagesSquare,
   Navigation,
   Phone,
+  Plane,
   Play,
+  Repeat2,
   Search,
   Send,
+  Sparkles,
   Star,
   Store,
   Target,
+  ThumbsUp,
   TrendingUp,
+  Users,
   X,
 } from 'lucide-react'
 import { gsap } from 'gsap'
@@ -35,9 +46,10 @@ import { A11y, Autoplay, EffectCoverflow, Keyboard } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/effect-coverflow'
 
-import { SHOW_COUNT_FROM, businessProfile, compact, googleItems, headlineStats, reelGroups } from '../data/performance'
+import { SHOW_COUNT_FROM, businessProfile, compact, googleItems, headlineStats, linkedinAds, reelGroups } from '../data/performance'
 import { whatsappLink } from '../data/site'
 import { useInView } from '../lib/hooks'
+import { useIndustry } from '../lib/industry'
 import { useModal } from '../lib/modal'
 import { lockScroll, scrollToTarget } from '../lib/scroll'
 import { WhatsAppIcon } from './icons'
@@ -48,8 +60,11 @@ const pad = (n) => String(n).padStart(2, '0')
 
 const groupIcons = { flame: Flame, tower: Building, store: Store }
 
-// Panels in the desktop slider, in order (labels on the progress rail)
-const PLATFORMS = ['Meta Ads', 'Google Ads', 'Business Profile']
+// Panels in the desktop slider, in order (labels on the progress rail).
+// The third one follows the hero switcher: LinkedIn for Real Estate,
+// Google Business Profile for Hospital / University.
+const PLATFORMS = ['Meta Ads', 'Google Ads', 'LinkedIn Ads']
+const PLATFORMS_LOCAL = ['Meta Ads', 'Google Ads', 'Business Profile']
 
 const SLIDE_MS = 2800      // Meta carousel: time on each reel
 const PORTFOLIO_MS = 6500  // Google: time on each portfolio
@@ -74,6 +89,19 @@ function GoogleGlyph({ size = 20 }) {
       <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
       <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
       <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  )
+}
+
+// LinkedIn "in" mark
+function LinkedInGlyph({ size = 22 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+      <rect width="24" height="24" rx="4.5" fill="#0A66C2" />
+      <path
+        fill="#fff"
+        d="M19.45 19.45h-2.96v-4.64c0-1.1-.02-2.53-1.54-2.53-1.55 0-1.78 1.2-1.78 2.45v4.72H10.2V9.9h2.84v1.3h.04c.4-.75 1.36-1.54 2.81-1.54 3 0 3.56 1.97 3.56 4.54v5.25ZM6.86 8.6a1.72 1.72 0 1 1 0-3.44 1.72 1.72 0 0 1 0 3.44Zm1.48 10.85H5.37V9.9h2.97v9.55Z"
+      />
     </svg>
   )
 }
@@ -143,7 +171,8 @@ function CountUp({ value, decimals = 0, prefix = '', suffix = '' }) {
    Scroll choreography (GSAP + ScrollTrigger, all scrubbed so it
    follows the scroll and rewinds on the way back up):
    · header lines rise out of masks, numbers band settles in
-   · desktop: Meta, Google and Google Business Profile sit side by
+   · desktop: Meta, Google and LinkedIn (Real Estate) or Google
+     Business Profile (Hospital / University) sit side by
      side in a pinned track — scrolling slides each one out to the
      left and the next in from the right, with a clickable rail
    · phones / short screens: each block slides in from its side
@@ -161,6 +190,8 @@ export default function Performance() {
   const trackRef = useRef(null)
   const slideST = useRef(null)
   const [step, setStep] = useState(0) // which platform the slider shows
+  const { industry } = useIndustry()
+  const isEstate = industry === 'real-estate'
 
   useGSAP(
     () => {
@@ -210,11 +241,11 @@ export default function Performance() {
         })
       })
 
-      // ── Desktop: pinned horizontal slide, Meta → Google → Business Profile
+      // ── Desktop: pinned horizontal slide, Meta → Google → LinkedIn / Business Profile
       mm.add(SLIDE_MQ, () => {
         const pin = pinRef.current
         const track = trackRef.current
-        const [metaPanel, googlePanel, gmbPanel] = q('.perf-panel-inner')
+        const [metaPanel, googlePanel, thirdPanelEl] = q('.perf-panel-inner')
         const distance = () => track.scrollWidth - pin.clientWidth
         const panel = () => distance() / (PLATFORMS.length - 1)
 
@@ -255,21 +286,21 @@ export default function Performance() {
           .from(q('.perf-g-copy > *'), { x: 80, autoAlpha: 0, stagger: 0.06, duration: 0.4 }, '<0.1')
           .fromTo(q('.perf-rail-fill')[0], { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'power1.inOut' }, 0.08)
           .to({}, { duration: 0.08 }) // short hold on Google
-          .addLabel('toMaps')
+          .addLabel('toThird')
           .to(track, { x: () => -distance(), duration: 1, ease: 'power1.inOut' })
           // Google recedes…
           .to(googlePanel, { scale: 0.86, autoAlpha: 0.2, rotateY: 10, transformPerspective: 1600, transformOrigin: '100% 50%', duration: 0.8 }, '<')
-          // …the Maps profile swings in
+          // …the third platform swings in
           .fromTo(
-            gmbPanel,
+            thirdPanelEl,
             { scale: 0.86, autoAlpha: 0.2, rotateY: -10, transformPerspective: 1600, transformOrigin: '0% 50%' },
             { scale: 1, autoAlpha: 1, rotateY: 0, duration: 0.8 },
             '<0.2',
           )
-          .from(q('.perf-b-copy > *'), { x: -80, autoAlpha: 0, stagger: 0.06, duration: 0.4 }, '<0.2')
-          .from(q('.perf-b-map'), { x: 80, rotateY: -12, transformPerspective: 1400, duration: 0.6 }, '<0.1')
-          .fromTo(q('.perf-rail-fill')[1], { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'power1.inOut' }, 'toMaps')
-          .to({}, { duration: 0.08 }) // short hold on the Maps profile
+          .from(q('.perf-p3-copy > *'), { x: -80, autoAlpha: 0, stagger: 0.06, duration: 0.4 }, '<0.2')
+          .from(q('.perf-p3-stage'), { x: 80, rotateY: -12, transformPerspective: 1400, duration: 0.6 }, '<0.1')
+          .fromTo(q('.perf-rail-fill')[1], { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'power1.inOut' }, 'toThird')
+          .to({}, { duration: 0.08 }) // short hold on the third platform
 
         return () => {
           slideST.current = null
@@ -285,11 +316,12 @@ export default function Performance() {
         from('.perf-meta-stage', 60)
         from('.perf-g-copy', 60)
         from('.perf-g-dash', -60)
-        from('.perf-b-copy', -60)
-        from('.perf-b-map', 60)
+        from('.perf-p3-copy', -60)
+        from('.perf-p3-stage', 60)
       })
     },
-    { scope: sectionRef },
+    // Re-run when the industry swaps the third panel
+    { scope: sectionRef, dependencies: [isEstate], revertOnUpdate: true },
   )
 
   // Rail buttons jump to that platform's spot in the slide
@@ -341,7 +373,11 @@ export default function Performance() {
           </h2>
 
           <p className="perf-sub max-w-[620px] text-[clamp(1rem,1.3vw,1.125rem)] leading-[1.65] text-[var(--muted)]">
-            We run the paid side too — Meta and Google campaigns plus your Google Maps listing, built from the
+            {isEstate ? (
+              <>We run the paid side too — Meta, Google and LinkedIn campaigns, built from the{' '}</>
+            ) : (
+              <>We run the paid side too — Meta and Google campaigns plus your Google Maps listing, built from the{' '}</>
+            )}
             same proof content and tuned for <span className="text-white">qualified leads and booked site visits</span>, not vanity clicks.
           </p>
 
@@ -353,10 +389,10 @@ export default function Performance() {
               ['google', 'Search'],
               ['google', 'YouTube'],
               ['google', 'Performance Max'],
-              ['maps', 'Google Maps'],
+              isEstate ? ['linkedin', 'LinkedIn'] : ['maps', 'Google Maps'],
             ].map(([p, label]) => (
               <span key={label} className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[12.5px] text-white/70">
-                {p === 'meta' ? <MetaGlyph size={15} /> : p === 'maps' ? <MapsGlyph size={15} /> : <GoogleGlyph size={13} />}
+                {p === 'meta' ? <MetaGlyph size={15} /> : p === 'linkedin' ? <LinkedInGlyph size={14} /> : p === 'maps' ? <MapsGlyph size={15} /> : <GoogleGlyph size={13} />}
                 {label}
               </span>
             ))}
@@ -391,7 +427,7 @@ export default function Performance() {
       <div ref={pinRef} className="perf-pin relative mx-[calc(50%-50vw)] mt-24 overflow-x-clip max-sm:mt-12">
         {/* Progress rail (desktop slide only) */}
         <div className="perf-rail mx-auto hidden w-full max-w-[1280px] items-center gap-4 px-[var(--gutter)] pb-6 [@media(min-width:1024px)_and_(min-height:700px)]:flex">
-          {PLATFORMS.map((label, i) => (
+          {(isEstate ? PLATFORMS : PLATFORMS_LOCAL).map((label, i) => (
             <span key={label} className="contents">
               {i > 0 && (
                 <span aria-hidden="true" className="relative h-[2px] flex-1 overflow-hidden rounded-full bg-white/10">
@@ -437,7 +473,7 @@ export default function Performance() {
           </div>
           <div className="perf-panel shrink-0 px-[var(--gutter)]">
             <div className="perf-panel-inner mx-auto max-w-[1280px]">
-              <BusinessProfile />
+              {isEstate ? <LinkedInAds /> : <BusinessProfile />}
             </div>
           </div>
         </div>
@@ -1007,6 +1043,335 @@ function GoogleAds({ onOpen }) {
 }
 
 /* ============================================================
+   LINKEDIN ADS — audience tabs auto-cycle; each one swaps the
+   sponsored post in the feed, the pre-filled Lead Gen Form and
+   the campaign numbers
+============================================================ */
+
+const audienceIcons = { plane: Plane, briefcase: Briefcase, laptop: Laptop }
+
+// Towers in the sample creative: [x, top, width]
+const TOWERS = [
+  [214, 74, 46],
+  [268, 34, 60],
+  [336, 92, 44],
+]
+
+/* Sample ad creative — a dusk skyline with lit windows */
+function Skyline() {
+  return (
+    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="li-sky" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor="#0a66c2" />
+          <stop offset="0.55" stopColor="#0d2a66" />
+          <stop offset="1" stopColor="#081233" />
+        </linearGradient>
+        <radialGradient id="li-sun" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#ffd8a3" stopOpacity="0.85" />
+          <stop offset="1" stopColor="#ffd8a3" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="400" height="200" fill="url(#li-sky)" />
+      <circle cx="318" cy="58" r="70" fill="url(#li-sun)" />
+      {TOWERS.map(([x, top, w]) => (
+        <g key={x}>
+          <rect x={x} y={top} width={w} height={200 - top} rx="2" fill="#0b1638" stroke="rgba(112,181,249,0.35)" strokeWidth="1" />
+          <rect x={x + w / 2 - 1} y={top - 10} width="2" height="10" fill="rgba(112,181,249,0.5)" />
+          {Array.from({ length: Math.floor((184 - top) / 11) }, (_, r) =>
+            Array.from({ length: Math.floor((w - 8) / 9) }, (_, c) =>
+              (r * 7 + c * 3 + x) % 5 > 1 ? (
+                <rect key={`${r}-${c}`} x={x + 5 + c * 9} y={top + 7 + r * 11} width="5" height="6" rx="1" fill="#ffd38a" opacity={(r + c) % 3 ? 0.85 : 0.4} />
+              ) : null,
+            ),
+          )}
+        </g>
+      ))}
+      <path d="M0 186 C 60 176, 120 192, 200 184 S 340 176, 400 186 L400 200 L0 200 Z" fill="#06102b" />
+      {[188, 206, 382].map((cx) => (
+        <ellipse key={cx} cx={cx} cy="184" rx="11" ry="8" fill="#0f3b33" />
+      ))}
+    </svg>
+  )
+}
+
+function LinkedInAds() {
+  const li = linkedinAds
+  const rootRef = useRef(null)
+  const inView = useInView(rootRef, '-10% 0px')
+  const [index, setIndex] = useState(0)
+  const [hover, setHover] = useState(false)
+  const a = li.audiences[index]
+  const paused = hover || !inView
+
+  const next = () => setIndex((i) => (i + 1) % li.audiences.length)
+
+  const fields = [
+    ['Full name', a.lead.name],
+    ['Job title', a.lead.title],
+    ['Company', a.lead.company],
+    ['Location', a.lead.place],
+  ]
+
+  return (
+    <div
+      ref={rootRef}
+      className="grid items-center gap-10 lg:grid-cols-[minmax(300px,380px)_1fr] lg:gap-14"
+      onPointerEnter={(e) => e.pointerType === 'mouse' && setHover(true)}
+      onPointerLeave={() => setHover(false)}
+    >
+      {/* ── Left on desktop: copy + audience tabs ────────── */}
+      <div className="perf-p3-copy flex min-w-0 flex-col gap-7">
+        <BlockHeading num="03" glyph={<LinkedInGlyph size={26} />} title="LinkedIn Ads" sub="Lead Gen Forms · NRI & CXO targeting" />
+
+        <p className="text-[15px] leading-[1.65] text-[var(--muted)]">
+          Reach the buyers who sign the big cheques — <span className="text-white">NRIs, CXOs and senior professionals</span> — by job
+          title, seniority and company, right in their work feed.
+        </p>
+
+        <div role="tablist" aria-label="LinkedIn audiences" className="flex flex-col gap-2">
+          {li.audiences.map((g, i) => {
+            const on = i === index
+            const Icon = audienceIcons[g.icon]
+            return (
+              <button
+                key={g.id}
+                role="tab"
+                type="button"
+                aria-selected={on}
+                onClick={() => setIndex(i)}
+                className={`
+                  relative flex flex-col overflow-hidden rounded-[18px] border px-3 py-3 text-left
+                  transition-[background-color,border-color,box-shadow] duration-500 ease-[var(--ease)]
+                  ${
+                    on
+                      ? 'border-[rgba(10,102,194,0.6)] bg-[linear-gradient(110deg,rgba(10,102,194,0.22),rgba(83,247,251,0.05))] shadow-[0_14px_40px_-18px_rgba(10,102,194,0.8)]'
+                      : 'border-white/[0.07] bg-white/[0.025] hover:border-white/15 hover:bg-white/[0.05]'
+                  }
+                `}
+              >
+                <span className="flex items-center gap-3">
+                  <span
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-[12px] transition-colors duration-500 ${
+                      on ? 'bg-[#0a66c2] text-white shadow-[0_0_22px_-4px_rgba(10,102,194,0.95)]' : 'bg-white/[0.06] text-[#70b5f9]'
+                    }`}
+                  >
+                    <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className={`font-[family-name:var(--font-display)] text-[14.5px] font-semibold ${on ? 'text-white' : 'text-white/75'}`}>{g.label}</span>
+                    <span className="truncate text-[11.5px] text-[var(--faint)]">{g.reach}</span>
+                  </span>
+                  <ChevronRight size={17} className={`shrink-0 transition-[transform,color] duration-500 ${on ? 'rotate-90 text-[#70b5f9]' : 'text-white/25'}`} />
+                </span>
+
+                {/* Targeting used for this audience */}
+                {on && (
+                  <span className="mt-2.5 flex flex-wrap gap-1.5 pl-[52px] [animation:fade_0.5s_var(--ease)_both]">
+                    {g.targeting.map((t) => (
+                      <span key={t} className="rounded-full bg-[rgba(10,102,194,0.2)] px-2 py-0.5 text-[10.5px] font-semibold text-[#9ccbff]">
+                        {t}
+                      </span>
+                    ))}
+                  </span>
+                )}
+
+                {on && (
+                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px] bg-white/[0.04]">
+                    <span
+                      key={index}
+                      onAnimationEnd={next}
+                      className="block h-full origin-left bg-[linear-gradient(90deg,#0a66c2,#70b5f9)] shadow-[0_0_10px_rgba(10,102,194,0.9)]"
+                      style={{ animation: `perf-fill ${PORTFOLIO_MS}ms linear both`, animationPlayState: paused ? 'paused' : 'running' }}
+                    />
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+          {li.work.map((w) => (
+            <li key={w} className="flex items-center gap-1.5 rounded-full border border-[rgba(10,102,194,0.4)] bg-[rgba(10,102,194,0.1)] px-3 py-1.5 text-[12.5px] text-white/80">
+              <Check size={12} strokeWidth={3} className="text-[#70b5f9]" aria-hidden="true" />
+              {w}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* ── Right on desktop: the feed + Lead Gen Form ───── */}
+      <div className="perf-p3-stage relative min-w-0">
+        <div aria-hidden="true" className="pointer-events-none absolute -inset-10 rounded-[60px] bg-[radial-gradient(60%_60%_at_50%_50%,rgba(10,102,194,0.24),transparent_70%)]" />
+
+        <div className="relative overflow-hidden rounded-[22px] border border-white/10 bg-[#0c1433] shadow-[0_50px_100px_-40px_rgba(0,0,0,0.95)]">
+          {/* Browser chrome */}
+          <div className="flex items-center gap-2 border-b border-white/[0.07] bg-black/30 px-4 py-3">
+            <span className="flex gap-1.5" aria-hidden="true">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80" />
+            </span>
+            <span className="mx-auto flex max-w-[340px] flex-1 items-center justify-center gap-1.5 truncate rounded-full bg-white/[0.06] px-3 py-1 text-[11.5px] text-white/50">
+              <LinkedInGlyph size={11} />
+              linkedin.com/feed
+            </span>
+          </div>
+
+          <div key={index} className="grid gap-3 p-[clamp(12px,1.6vw,18px)] [animation:fade_0.6s_var(--ease)_both] sm:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)]">
+            {/* Sponsored post */}
+            <article className="flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-white/[0.07] bg-[#0e1738]">
+              <header className="flex items-center gap-2.5 px-3 pt-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[8px] bg-[linear-gradient(140deg,#70b5f9,#0a66c2)] text-white">
+                  <Building size={17} aria-hidden="true" />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                  <span className="truncate font-[family-name:var(--font-display)] text-[12.5px] font-bold text-white">{li.page.name}</span>
+                  <span className="truncate text-[10.5px] text-white/50">{li.page.followers}</span>
+                  <span className="text-[10.5px] text-white/50">Promoted</span>
+                </span>
+                <span className="shrink-0 text-[11.5px] font-semibold text-[#70b5f9]">+ Follow</span>
+              </header>
+
+              <p className="line-clamp-2 px-3 pt-2 text-[11.5px] leading-snug text-white/80">{a.post}</p>
+
+              {/* Creative */}
+              <div className="relative mt-2.5 aspect-[2/1] overflow-hidden">
+                <Skyline />
+                <div className="absolute inset-y-0 left-0 flex w-[56%] flex-col justify-center gap-1.5 pl-[7%]">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#9ccbff]">Sky Residences</span>
+                  <span className="font-[family-name:var(--font-display)] text-[clamp(15px,1.7vw,22px)] font-extrabold leading-[1.05] text-white">3 & 4 BHK</span>
+                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-[9.5px] font-bold text-[#0a66c2]">
+                    <FileText size={10} aria-hidden="true" /> Price sheet inside
+                  </span>
+                </div>
+              </div>
+
+              {/* Headline + CTA */}
+              <div className="flex items-center gap-2 bg-white/[0.04] px-3 py-2">
+                <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                  <span className="truncate font-[family-name:var(--font-display)] text-[12px] font-semibold text-white">{a.headline}</span>
+                  <span className="text-[10px] text-white/45">yourproject.in</span>
+                </span>
+                <span className="shrink-0 rounded-full border border-[#70b5f9] px-2.5 py-1 text-[10.5px] font-semibold text-[#70b5f9]">Download</span>
+              </div>
+
+              {/* Reactions */}
+              <div className="flex items-center justify-between px-3 py-2 text-[10.5px] text-white/50">
+                <span className="flex items-center gap-1.5">
+                  <span className="flex" aria-hidden="true">
+                    <span className="grid h-4 w-4 place-items-center rounded-full bg-[#378fe9] ring-2 ring-[#0e1738]">
+                      <ThumbsUp size={8} className="fill-white text-white" />
+                    </span>
+                    <span className="-ml-1 grid h-4 w-4 place-items-center rounded-full bg-[#df704d] ring-2 ring-[#0e1738]">
+                      <Heart size={8} className="fill-white text-white" />
+                    </span>
+                    <span className="-ml-1 grid h-4 w-4 place-items-center rounded-full bg-[#6dae4f] ring-2 ring-[#0e1738]">
+                      <Sparkles size={8} className="text-white" />
+                    </span>
+                  </span>
+                  1,284
+                </span>
+                <span>86 comments · 41 reposts</span>
+              </div>
+              <div className="mx-3 grid grid-cols-4 border-t border-white/[0.07] py-1.5 text-[10.5px] font-semibold text-white/55 max-sm:hidden" aria-hidden="true">
+                {[
+                  [ThumbsUp, 'Like'],
+                  [MessageSquare, 'Comment'],
+                  [Repeat2, 'Repost'],
+                  [Send, 'Send'],
+                ].map(([Icon, t]) => (
+                  <span key={t} className="flex items-center justify-center gap-1">
+                    <Icon size={12} /> {t}
+                  </span>
+                ))}
+              </div>
+            </article>
+
+            {/* Lead Gen Form, pre-filled from the member's profile */}
+            <div className="flex min-w-0 flex-col gap-2 rounded-[14px] border border-[rgba(10,102,194,0.45)] bg-[linear-gradient(170deg,rgba(10,102,194,0.16),rgba(14,23,56,0.9)_40%)] p-3 [animation:pop_0.7s_var(--ease)_0.25s_both]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-[family-name:var(--font-display)] text-[13px] font-bold text-white">Get the price sheet</span>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(10,102,194,0.3)] px-2 py-0.5 text-[9.5px] font-semibold text-[#9ccbff]">
+                  <BadgeCheck size={10} aria-hidden="true" /> Auto-filled
+                </span>
+              </div>
+              <p className="text-[10.5px] leading-snug text-white/50">Details come straight from the LinkedIn profile — no typing.</p>
+
+              <div className="flex flex-col gap-1.5">
+                {fields.map(([label, value], i) => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-2 rounded-[10px] border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5"
+                    style={{ animation: `pop 0.55s var(--ease) ${400 + i * 120}ms both` }}
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                      <span className="text-[9.5px] text-white/45">{label}</span>
+                      <span className="truncate text-[12px] font-medium text-white">{value}</span>
+                    </span>
+                    <Check size={13} strokeWidth={3} className="shrink-0 text-[#5ee08a]" aria-hidden="true" />
+                  </div>
+                ))}
+              </div>
+
+              <span className="mt-0.5 flex h-8 items-center justify-center rounded-full bg-[#0a66c2] text-[12px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(10,102,194,0.9)]">
+                Submit
+              </span>
+              <span className="flex items-center justify-center gap-1 text-[9.5px] text-white/40">
+                <Lock size={9} aria-hidden="true" /> Shared only with {li.page.name}
+              </span>
+
+              {/* Hand-off to sales */}
+              <span
+                className="mt-auto flex items-center gap-2 rounded-[10px] border border-[rgba(94,224,138,0.3)] bg-[rgba(94,224,138,0.08)] px-2.5 py-1.5 text-[10.5px] text-white/75"
+                style={{ animation: 'pop 0.6s var(--ease) 1.1s both' }}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#25d366] text-white">
+                  <WhatsAppIcon size={12} />
+                </span>
+                <span>
+                  Lead on sales WhatsApp <b className="text-white">in 2 min</b>
+                </span>
+              </span>
+            </div>
+          </div>
+
+          {/* Campaign Manager numbers for this audience */}
+          <dl key={`k-${index}`} className="m-0 grid grid-cols-2 gap-2 border-t border-white/[0.07] bg-black/20 p-[clamp(12px,1.6vw,18px)] sm:grid-cols-4">
+            {a.kpis.map((k, i) => (
+              <div
+                key={k.label}
+                className={`rounded-[12px] border px-3 py-2 ${i === 1 ? 'border-[rgba(10,102,194,0.55)] bg-[rgba(10,102,194,0.16)]' : 'border-white/[0.06] bg-white/[0.03]'}`}
+                style={{ animation: `pop 0.6s var(--ease) ${i * 80}ms both` }}
+              >
+                <dt className="text-[10.5px] text-white/55">{k.label}</dt>
+                <dd className="m-0 flex items-baseline gap-1.5">
+                  <span className="font-[family-name:var(--font-display)] text-[clamp(15px,1.5vw,19px)] font-bold leading-tight text-white">{k.value}</span>
+                  <span className="text-[10.5px] font-semibold text-[#5ee08a]">{k.delta}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        {/* Floating highlight */}
+        <div key={`hl-${index}`} className="perf-float pointer-events-none absolute -right-3 -top-6 z-10 max-sm:hidden">
+          <div className="flex items-center gap-2.5 rounded-full border border-[rgba(10,102,194,0.55)] bg-[rgba(11,18,41,0.85)] py-2 pl-2 pr-4 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-[rgba(10,102,194,0.25)] text-[#70b5f9]">
+              <Users size={15} aria-hidden="true" />
+            </span>
+            <span className="text-[13px] text-white/70">
+              <b className="font-[family-name:var(--font-display)] text-[16px] text-white">{a.kpis[1].delta}</b> qualified leads
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
    GOOGLE BUSINESS PROFILE — a Google Maps search with the client
    ranked first in the 3-pack, plus the profile's insights
 ============================================================ */
@@ -1026,7 +1391,7 @@ function BusinessProfile() {
   return (
     <div className="grid items-center gap-10 lg:grid-cols-[minmax(300px,400px)_1fr] lg:gap-14">
       {/* ── Left on desktop: copy + insights ─────────────── */}
-      <div className="perf-b-copy flex min-w-0 flex-col gap-7">
+      <div className="perf-p3-copy flex min-w-0 flex-col gap-7">
         <BlockHeading num="03" glyph={<MapsGlyph size={26} />} title="Google Business Profile" sub="Google Maps · Local SEO · Reviews" />
 
         <p className="text-[15px] leading-[1.65] text-[var(--muted)]">
@@ -1057,7 +1422,7 @@ function BusinessProfile() {
       </div>
 
       {/* ── Right on desktop: the Maps search ────────────── */}
-      <div className="perf-b-map relative min-w-0">
+      <div className="perf-p3-stage relative min-w-0">
         <div aria-hidden="true" className="pointer-events-none absolute -inset-10 rounded-[60px] bg-[radial-gradient(60%_60%_at_50%_50%,rgba(234,67,53,0.16),transparent_70%)]" />
 
         <div className="relative overflow-hidden rounded-[22px] border border-white/10 bg-[#0c1433] shadow-[0_50px_100px_-40px_rgba(0,0,0,0.95)]">

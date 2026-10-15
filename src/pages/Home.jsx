@@ -17,6 +17,7 @@ import IndustryDock from '../components/IndustryDock'
  * Keyed by industry so a switch mounts a fresh set; the block wires up its
  * own `data-slide` animations each time (see data-slide-root in slide.js).
  */
+
 function IndustryProof() {
   const { config } = useIndustry()
   const ref = useRef(null)
@@ -37,7 +38,6 @@ function IndustryProof() {
     </div>
   )
 }
-
 // Home — hero, the proof for the chosen industry, ads, leads, contact
 export default function Home() {
   return (
@@ -52,3 +52,4 @@ export default function Home() {
     </>
   )
 }
+

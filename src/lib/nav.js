@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { scrollToTarget } from './scroll'
+import { industryFromPath, useIndustry } from './industry'
 
 // Top-level pages, in navbar order
 export const pages = [
@@ -14,21 +15,26 @@ export const pages = [
 /*
  * One way to move around the site:
  *   go('/about')    another page
- *   go('/#area')    a section on the home page (from any page)
+ *   go('/#area')    a section on the home page (from any page) — '/' is the
+ *                   page of the industry you're on (or last saw)
  *   go('#area')     a section on the current page
  * Already on the target page → smooth-scrolls instead of reloading it.
  */
 export function useGo() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { homePath } = useIndustry()
 
   return useCallback(
     (to) => {
       const [path, hash] = to.split('#')
-      const target = path || pathname
+      const target = path === '/' ? homePath : path || pathname
       if (target === pathname) scrollToTarget(hash ? `#${hash}` : 0)
       else navigate(hash ? `${target}#${hash}` : target)
     },
-    [navigate, pathname],
+    [navigate, pathname, homePath],
   )
 }
+
+// The navbar treats every industry page as "Home"
+export const pageOf = (pathname) => (industryFromPath(pathname) ? '/' : pathname)

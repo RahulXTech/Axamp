@@ -86,7 +86,7 @@ export const googleItems = [
   },
 ]
 
-// ─── Google Business Profile (GMB) ──────────────────────────────────────
+// ─── Google Business Profile (GMB) — Hospital & University ──────────────
 // ⚠ DEMO CONTENT — sample numbers so the Maps preview looks complete.
 // Replace with the real Business Profile insights for a client.
 
@@ -109,4 +109,65 @@ export const businessProfile = {
     { label: 'Website clicks', value: '2,715', delta: '+52%' },
   ],
   work: ['Maps 3-pack ranking', 'Review replies', 'Weekly posts & photos', 'Keyword-rich listing'],
+}
+
+// ─── LinkedIn Ads — Real Estate ─────────────────────────────────────────
+// ⚠ DEMO CONTENT — sample audiences, leads and numbers so the LinkedIn
+// preview looks complete. People and companies are made up. Replace with
+// real Campaign Manager figures for a client.
+
+export const linkedinAds = {
+  page: { name: 'Your Project', followers: '12,480 followers' },
+  // One tab per audience — each swaps the post, the pre-filled lead and the numbers
+  audiences: [
+    {
+      id: 'nri',
+      icon: 'plane',
+      label: 'NRI professionals',
+      reach: 'Dubai · Singapore · London',
+      targeting: ['Indian diaspora', 'Senior & above', 'Gulf · SEA · UK'],
+      post: 'Working abroad, building back home. Sky residences with a live video walkthrough — price sheet in one tap.',
+      headline: 'Own a home back in India',
+      lead: { name: 'Arjun Mehta', title: 'VP, Finance', company: 'Northwind Capital', place: 'Dubai, UAE' },
+      kpis: [
+        { label: 'Impressions', value: '214K', delta: '+58%' },
+        { label: 'Leads', value: '386', delta: '+47%' },
+        { label: 'Cost / lead', value: '₹412', delta: '-31%' },
+        { label: 'Form fill rate', value: '14.8%', delta: '+5.2 pts' },
+      ],
+    },
+    {
+      id: 'cxo',
+      icon: 'briefcase',
+      label: 'CXOs & founders',
+      reach: 'Director+ · Delhi NCR',
+      targeting: ['Director & above', 'Company 200+', 'Founders'],
+      post: 'Private lift lobbies, a sky clubhouse and 4 BHK layouts made for hosting. Site visits by appointment.',
+      headline: 'Residences for people who lead',
+      lead: { name: 'Neha Kapoor', title: 'Founder & CEO', company: 'Brightlane Tech', place: 'Gurugram, India' },
+      kpis: [
+        { label: 'Impressions', value: '96K', delta: '+42%' },
+        { label: 'Leads', value: '148', delta: '+63%' },
+        { label: 'Cost / lead', value: '₹890', delta: '-24%' },
+        { label: 'Site visits', value: '37', delta: '+41%' },
+      ],
+    },
+    {
+      id: 'tech',
+      icon: 'laptop',
+      label: 'Tech professionals',
+      reach: 'Noida & Gurugram IT parks',
+      targeting: ['Engineering & IT', '5–15 yrs exp.', 'Near your office'],
+      post: '3 BHK, 10 minutes from the IT park. Skip the commute, keep the weekend — book a site visit after work.',
+      headline: '10 minutes from your office',
+      lead: { name: 'Rohan Iyer', title: 'Engineering Manager', company: 'Meridian Systems', place: 'Noida, India' },
+      kpis: [
+        { label: 'Impressions', value: '312K', delta: '+71%' },
+        { label: 'Leads', value: '529', delta: '+52%' },
+        { label: 'Cost / lead', value: '₹268', delta: '-36%' },
+        { label: 'Form fill rate', value: '12.1%', delta: '+4.4 pts' },
+      ],
+    },
+  ],
+  work: ['Job-title targeting', 'Lead Gen Forms', 'Brochure document ads', 'Leads to WhatsApp'],
 }

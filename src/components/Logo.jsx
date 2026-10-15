@@ -3,6 +3,7 @@ export const LOGO = {
   mark: '/assets/brand/axamp-mark.webp',       // 738×720 — large uses
   markSm: '/assets/brand/axamp-mark-sm.webp',  // 131×128 — nav, cards
   wordmark: '/assets/brand/axamp-wordmark.webp', // 733×96
+  wordmarkLg: '/assets/brand/axamp-wordmark-lg.webp', // 2400×311 — footer-size uses
 }
 
 const MARK_RATIO = 738 / 720

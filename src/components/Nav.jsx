@@ -10,7 +10,7 @@ import { FacebookIcon, InstagramIcon, LinkedInIcon, PillarIcon, WhatsAppIcon } f
 import { useIndustry } from '../lib/industry'
 import { site, whatsappLink } from '../data/site'
 import { lockScroll } from '../lib/scroll'
-import { pages, useGo } from '../lib/nav'
+import { pageOf, pages, useGo } from '../lib/nav'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -36,8 +36,9 @@ export default function Nav() {
   const { pathname } = useLocation()
   const goTo = useGo()
   // The page you're on (unknown paths light nothing)
-  const active = pages.some((p) => p.to === pathname) ? pathname : null
-  const isHome = pathname === '/'
+  const onPage = pageOf(pathname)
+  const active = pages.some((p) => p.to === onPage) ? onPage : null
+  const isHome = onPage === '/'
   // "Jump to proof" follows the hero switcher (Real Estate / Hospital …)
   const { pillars } = useIndustry().config
 

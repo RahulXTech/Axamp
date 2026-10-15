@@ -30,12 +30,9 @@ export const catalog = {
       accent: tone.pink,
       tagline: 'Every platform, each with its own job.',
       services: [
-        { id: 'sm-instagram', icon: 'instagram', name: 'Instagram', bestFor: 'Quick engagement', desc: 'Reels, stories and posts made for the scroll — quick hits that earn likes, shares and DMs every day.' },
-        { id: 'sm-facebook', icon: 'facebook', name: 'Facebook', bestFor: 'Community & connections', desc: 'Reach the audience that has known you for years — page posts, groups and the word of mouth that still converts.' },
-        { id: 'sm-wa-channel', icon: 'whatsapp', name: 'WhatsApp Channel', bestFor: 'Trust & reminders', desc: 'A direct line to your followers’ phones — updates, offers and timely reminders from a name they already trust.' },
+        { id: 'sm-meta', icon: 'meta', name: 'Meta', bestFor: 'Facebook, Instagram & WhatsApp', desc: 'One plan across Meta’s family — reels, stories and posts on Instagram, page posts and groups on Facebook, and updates on your WhatsApp Channel.' },
         { id: 'sm-linkedin', icon: 'linkedin', name: 'LinkedIn', bestFor: 'Professionals & B2B', desc: 'Thought-leadership posts and company updates that build credibility with decision-makers and talent.' },
         { id: 'sm-youtube', icon: 'youtube', name: 'YouTube', bestFor: 'Long-form deep dives', desc: 'Detailed videos, walkthroughs and explainers — the long format that answers every question before they call.' },
-        { id: 'sm-gmb', icon: 'pin', name: 'Google Business Profile', bestFor: 'Google Maps & local SEO', desc: 'Your Google Maps listing (GMB) optimised with photos, posts, reviews and keywords — so nearby customers find you first.' },
       ],
     },
     {
