@@ -40,7 +40,12 @@ export const team = [
   { name: 'Tanishka Sinah Chauhan', role: '', photo: '/assets/team/tanishka-sinah-chauhan.webp' },
   { name: 'Aditya', role: '', photo: '/assets/team/aditya.webp' },
   { name: 'Anand', role: '', photo: '/assets/team/anand.webp' },
+  { name: 'Shivangi', role: '', photo: '/assets/team/shivangi.jpg' },
 ]
+
+// The team grid always shows this many boxes (5 per row on desktop);
+// slots without a member render as blank boxes at the end.
+export const teamSlots = 10
 
 // "Content that matters" — real, raw, storytelling, fun and relatable.
 // `visual` picks the animated preview in components/ContentBento.jsx.

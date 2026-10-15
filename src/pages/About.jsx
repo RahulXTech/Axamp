@@ -11,7 +11,7 @@ import {
 import PageHero from '../components/PageHero'
 import ContentBento from '../components/ContentBento'
 import { WhatsAppIcon } from '../components/icons'
-import { founder, growth, principles, stats, team, workflow } from '../data/about'
+import { founder, growth, principles, stats, team, teamSlots, workflow } from '../data/about'
 import { whatsappLink } from '../data/site'
 import { useGo } from '../lib/nav'
 
@@ -66,13 +66,15 @@ const shuffle = (list) => {
   return a
 }
 
-function TeamGrid({ members }) {
+function TeamGrid({ members, slots }) {
   const order = useMemo(() => shuffle(members), [members])
+  // Keep full rows of 5: pad with blank boxes up to `slots` (or the next row of 5)
+  const blanks = Math.max(slots, Math.ceil(order.length / 5) * 5) - order.length
   return (
     <ul
       data-slide="up"
       data-slide-stagger
-      className="m-0 mt-12 grid list-none grid-cols-2 gap-3 p-0 max-[640px]:mt-6 min-[640px]:grid-cols-3 min-[640px]:gap-4 min-[1024px]:grid-cols-6"
+      className="m-0 mt-12 grid list-none grid-cols-2 gap-3 p-0 max-[640px]:mt-6 min-[640px]:gap-4 min-[768px]:grid-cols-5"
     >
       {order.map((m, i) => (
         <li key={m.photo}>
@@ -111,6 +113,12 @@ function TeamGrid({ members }) {
               {m.role && <span className="text-[12px] font-semibold leading-snug text-[var(--cyan)]">{m.role}</span>}
             </figcaption>
           </figure>
+        </li>
+      ))}
+      {/* Open seats: same box, no photo */}
+      {Array.from({ length: blanks }, (_, i) => (
+        <li key={`blank-${i}`} aria-hidden="true">
+          <div className="aspect-[4/5] rounded-[22px] border border-dashed border-white/15 bg-white/[0.03]" />
         </li>
       ))}
     </ul>
@@ -354,7 +362,7 @@ export default function About() {
           title="The people behind your growth."
           text="Strategists, creators, designers and developers — one team that plans, shoots, codes and ships for every brand we grow."
         />
-        <TeamGrid members={team} />
+        <TeamGrid members={team} slots={teamSlots} />
       </Section>
 
       {/* ── Content principles ─────────────────────────── */}
