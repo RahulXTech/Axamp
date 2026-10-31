@@ -5,12 +5,16 @@ import { useGSAP } from '@gsap/react'
 
 import { resolveReel } from '../data/work'
 import { useInView, useIsCarousel } from '../lib/hooks'
+import { lazyPage } from '../lib/lazyPage'
 import IntroPanel, { PillLabel } from './IntroPanel'
 import VideoCard from './VideoCard'
-import PillarShowcase from './PillarShowcase'
 import PillarOrbit from './PillarOrbit'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
+
+// Only the Hospital page uses the coverflow, so it (and Swiper) loads on demand;
+// App.jsx fetches it in the background once the first page has settled
+export const PillarShowcase = lazyPage(() => import('./PillarShowcase'))
 
 /* Ring tuning */
 const SLOTS = 10           // minimum cards around the ring (reels repeat to fill it)

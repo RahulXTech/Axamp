@@ -1,9 +1,11 @@
-// Official AXAMP artwork, cut out from public/assets/AXAMP_LOGO.png
+// Official AXAMP artwork, cut out from public/assets/AXAMP_LOGO.png.
+// Served from ImageKit (index.html preconnects to it, as the nav logo is on screen at once).
+const BRAND = 'https://ik.imagekit.io/9zyan4kvck/brand'
 export const LOGO = {
-  mark: '/assets/brand/axamp-mark.webp',       // 738×720 — large uses
-  markSm: '/assets/brand/axamp-mark-sm.webp',  // 131×128 — nav, cards
-  wordmark: '/assets/brand/axamp-wordmark.webp', // 733×96
-  wordmarkLg: '/assets/brand/axamp-wordmark-lg.webp', // 2400×311 — footer-size uses
+  mark: `${BRAND}/axamp-mark.webp`,       // 738×720 — large uses
+  markSm: `${BRAND}/axamp-mark-sm.webp`,  // 131×128 — nav, cards
+  wordmark: `${BRAND}/axamp-wordmark.webp`, // 733×96
+  wordmarkLg: `${BRAND}/axamp-wordmark-lg.webp`, // 2400×311 — footer-size uses
 }
 
 const MARK_RATIO = 738 / 720

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { resolveReel } from '../data/work'
-import { useInView, useStopDownloadWhenHidden, useVideoAvailable, useVideoSlot } from '../lib/hooks'
+import { useInView } from '../lib/hooks'
 import { scrollToTarget } from '../lib/scroll'
 import { PillarIcon } from './icons'
 
@@ -44,105 +44,29 @@ function useActivePillar(pillars) {
 }
 
 /* ------------------------------------------------------------------
-   Instagram reel embed — same trick VideoCard uses (for pillars whose
-   reel has no MP4 of its own).
-   The IG embed is a fixed 340px wide, 4:5 media block under a
-   ~54px header. We scale it so the media fills the card and the
-   header/footer chrome is cropped off.
+   The pillar's first reel, as a still cover. No inline video here: six
+   cards autoplaying (or Instagram embeds for reels without an MP4) cost
+   a lot of data and memory, and the card only jumps to its section —
+   the reels themselves play there. Falls back to Instagram's thumbnail.
 ------------------------------------------------------------------ */
-const IG_WIDTH = 340
-
-function InstagramReelEmbed({ id }) {
-  const mediaRef = useRef(null)
-
-  useEffect(() => {
-    const el = mediaRef.current
-    if (!el) return
-
-    const ro = new ResizeObserver(([entry]) => {
-      const h = entry.contentRect.height
-      el.style.setProperty('--ig-s', (h / (IG_WIDTH * 1.25)).toFixed(4))
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  return (
-    <div ref={mediaRef} className="absolute inset-0 overflow-hidden">
-      <iframe
-        style={{
-          position: 'absolute',
-          left: '50%',
-          width: `${IG_WIDTH}px`,
-          height: '1100px',
-          transformOrigin: 'top center',
-          border: 0,
-          pointerEvents: 'none',
-          transform: `translateX(-50%) translateY(calc(-54px * var(--ig-s, 1.4))) scale(var(--ig-s, 1.4))`,
-        }}
-        src={`https://www.instagram.com/reel/${id}/embed/`}
-        title=""
-        loading="lazy"
-        tabIndex={-1}
-        scrolling="no"
-        allow="autoplay; encrypted-media"
-      />
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------
-   The pillar's first reel. The cover shows straight away; our own MP4
-   then plays on top as a muted loop while the card is on screen. A
-   reel with no MP4 falls back to its Instagram embed.
------------------------------------------------------------------- */
-function ReelMedia({ reel, playing }) {
-  const hasMp4 = useVideoAvailable(reel.image ? null : reel.video)
-  // Mounted only while it plays — six cards share the screen on phones
-  const showMp4 = useVideoSlot(playing && hasMp4 === true)
+function ReelCover({ reel }) {
   const [poster, setPoster] = useState(reel.poster)
-  const videoRef = useRef(null)
-
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v) return
-    if (playing) v.play().catch(() => {})
-    else v.pause()
-  }, [playing, showMp4])
-
-  useStopDownloadWhenHidden(videoRef, showMp4)
+  if (!poster) return null
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      {poster && (
-        <img
-          src={poster}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          onError={() => setPoster((p) => (p !== reel.posterFallback ? reel.posterFallback : null))}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[var(--ease)] group-hover:scale-[1.04]"
-        />
-      )}
-      {showMp4 && (
-        <video
-          ref={videoRef}
-          src={reel.video}
-          poster={poster ?? undefined}
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[var(--ease)] group-hover:scale-[1.04]"
-        />
-      )}
-      {hasMp4 === false && reel.type === 'instagram' && !reel.image && <InstagramReelEmbed id={reel.id} />}
-    </div>
+    <img
+      src={poster}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      onError={() => setPoster((p) => (p !== reel.posterFallback ? reel.posterFallback : null))}
+      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[var(--ease)] group-hover:scale-[1.04]"
+    />
   )
 }
 
 /* ------------------------------------------------------------------
-   One card — plays the reel inline, overlaid with step number,
+   One card — the reel's cover, overlaid with step number,
    icon chip, and label.
 ------------------------------------------------------------------ */
 function PillarCard({ pillar, index, isActive }) {
@@ -159,13 +83,9 @@ function PillarCard({ pillar, index, isActive }) {
     }
   })()
 
-  /* Media is only mounted while the card is roughly on screen and is
-     released again once it's scrolled well away — six decoded videos
-     kept alive at once is enough for iOS Safari to kill (reload) the tab.
-     Plays only while visible. */
+  /* The cover is only mounted once the card is near the screen */
   const cardRef = useRef(null)
   const near = useInView(cardRef, '300px 0px')
-  const visible = useInView(cardRef)
 
   const accent = warm
     ? {
@@ -244,10 +164,10 @@ function PillarCard({ pillar, index, isActive }) {
           "
         />
 
-        {/* Layer 2 — the reel: cover, then the video (fills the card) */}
+        {/* Layer 2 — the reel's cover image (fills the card) */}
         {reel && near && (
-          <div className="absolute inset-0 z-[1]">
-            <ReelMedia reel={reel} playing={visible} />
+          <div className="absolute inset-0 z-[1] overflow-hidden">
+            <ReelCover reel={reel} />
           </div>
         )}
 
@@ -431,7 +351,8 @@ export default function ProcessStrip({ pillars, eyebrow, title }) {
         shadow-[0_-40px_90px_-20px_rgba(0,0,0,0.75)]
         gap-8
         px-[var(--gutter)]
-        py-[14vh]
+        pt-[8vh]
+        pb-[14vh]
 
         max-[900px]:gap-7
         max-[600px]:gap-5

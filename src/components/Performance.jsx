@@ -19,13 +19,14 @@ import {
   Infinity as InfinityIcon,
   Laptop,
   Lock,
+  Megaphone,
   MessageCircle,
   MessageSquare,
   MessagesSquare,
+  Music,
   Navigation,
   Phone,
   Plane,
-  Play,
   Repeat2,
   Search,
   Send,
@@ -36,19 +37,17 @@ import {
   ThumbsUp,
   TrendingUp,
   Users,
+  VolumeX,
+  Wifi,
   X,
 } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { A11y, Autoplay, EffectCoverflow, Keyboard } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/effect-coverflow'
 
-import { SHOW_COUNT_FROM, businessProfile, compact, googleItems, headlineStats, linkedinAds, reelGroups } from '../data/performance'
-import { whatsappLink } from '../data/site'
-import { useInView } from '../lib/hooks'
+import { SHOW_COUNT_FROM, businessProfile, compact, googleItems, headlineStats, linkedinAds, metaAdGroup, reelGroups } from '../data/performance'
+import { site, whatsappLink } from '../data/site'
+import { useInView, useStopDownloadWhenHidden, useVideoAvailable, useVideoSlot } from '../lib/hooks'
 import { useIndustry } from '../lib/industry'
 import { useModal } from '../lib/modal'
 import { lockScroll, scrollToTarget } from '../lib/scroll'
@@ -58,7 +57,7 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const pad = (n) => String(n).padStart(2, '0')
 
-const groupIcons = { flame: Flame, tower: Building, store: Store }
+const groupIcons = { flame: Flame, tower: Building, store: Store, megaphone: Megaphone }
 
 // Panels in the desktop slider, in order (labels on the progress rail).
 // The third one follows the hero switcher: LinkedIn for Real Estate,
@@ -66,7 +65,7 @@ const groupIcons = { flame: Flame, tower: Building, store: Store }
 const PLATFORMS = ['Meta Ads', 'Google Ads', 'LinkedIn Ads']
 const PLATFORMS_LOCAL = ['Meta Ads', 'Google Ads', 'Business Profile']
 
-const SLIDE_MS = 2800      // Meta carousel: time on each reel
+const STORY_MS = 6500      // Meta phone: time on each reel
 const PORTFOLIO_MS = 6500  // Google: time on each portfolio
 
 const promises = [
@@ -463,7 +462,7 @@ export default function Performance() {
         <div ref={trackRef} className="perf-track flex flex-col gap-28 max-sm:gap-14">
           <div className="perf-panel shrink-0 px-[var(--gutter)]">
             <div className="perf-panel-inner mx-auto max-w-[1280px]">
-              <MetaAds />
+              <MetaAds key={isEstate ? 'estate' : 'local'} isEstate={isEstate} />
             </div>
           </div>
           <div className="perf-panel shrink-0 px-[var(--gutter)]">
@@ -534,11 +533,12 @@ export default function Performance() {
 }
 
 /* ============================================================
-   META — real client reels, best performers first.
-   Auto-plays through each tab, then hands over to the next;
-   the bar under the active tab shows how far it got.
-   Clicking the centred reel opens the on-site player.
+   META — ad creatives and real client reels, playing on a phone.
+   Story bars time each reel; after the last one the next tab
+   takes over. Tapping the phone opens the on-site player.
 ============================================================ */
+
+const videoOf = (r) => r.video ?? `/videos/${r.id}.mp4`
 
 export const initials = (name) =>
   name
@@ -548,13 +548,14 @@ export const initials = (name) =>
     .slice(0, 2)
     .toUpperCase()
 
-// Shape the on-site player (VideoModal) expects
+// Shape the on-site player (VideoModal) expects. Ad creatives have no
+// Instagram post, so they play as AXAMP's own videos.
 const toModalReel = (r) => ({
   key: `perf-${r.id}`,
-  type: 'instagram',
+  type: r.ad ? 'file' : 'instagram',
   id: r.id,
-  url: r.url,
-  video: `/videos/${r.id}.mp4`,
+  url: r.ad ? site.instagram : r.url,
+  video: videoOf(r),
   poster: r.cover,
   caption: r.caption,
   handle: r.handle,
@@ -566,76 +567,61 @@ const toModalReel = (r) => ({
 
 export const showCount = (n) => n != null && n >= SHOW_COUNT_FROM
 
-function MetaAds() {
-  const { open } = useModal()
+function MetaAds({ isEstate }) {
+  const { open, reel: openReel } = useModal()
   const rootRef = useRef(null)
+  const stripRef = useRef(null)
   const inView = useInView(rootRef, '-10% 0px')
   const [groupIndex, setGroupIndex] = useState(0)
   const [active, setActive] = useState(0)
-  const [swiper, setSwiper] = useState(null)
-  const barRefs = useRef([])
-  const shown = useRef({ count: 0, last: 0 })
-  const seen = useRef(false)
+  const [hover, setHover] = useState(false)
 
-  const group = reelGroups[groupIndex]
+  // Real Estate opens on its ad creatives
+  const groups = isEstate ? [metaAdGroup, ...reelGroups] : reelGroups
+  const group = groups[groupIndex]
   const n = group.reels.length
-  // Loop mode needs spare slides on wide screens — repeat short lists
-  const slides = Array.from({ length: Math.ceil(8 / n) * n }, (_, i) => group.reels[i % n])
   const current = group.reels[active]
+  const prev = group.reels[(active - 1 + n) % n]
+  const next = group.reels[(active + 1) % n]
+  const paused = !inView || hover || !!openReel
 
   const pickGroup = (i) => {
-    shown.current = { count: 0, last: 0 }
-    barRefs.current.forEach((bar) => bar && (bar.style.transform = 'scaleX(0)'))
     setActive(0)
     setGroupIndex(i)
   }
+  const go = (d) => setActive((a) => (a + d + n) % n)
+  // Story bar ran out → next reel; after the last one, the next tab
+  const onStoryEnd = () => (active + 1 < n ? setActive(active + 1) : pickGroup((groupIndex + 1) % groups.length))
 
-  // Only run the carousel while it's on screen
+  // Keep the active thumbnail centred in the strip (never scrolls the page)
   useEffect(() => {
-    if (!swiper || swiper.destroyed || !swiper.autoplay) return
-    if (!inView) {
-      swiper.autoplay.stop()
-      return
-    }
-    // First time it's seen, always open on the #1 reel
-    if (!seen.current) {
-      seen.current = true
-      swiper.slideToLoop(0, 0, false)
-    }
-    swiper.autoplay.start()
-  }, [swiper, inView])
+    const strip = stripRef.current
+    const thumb = strip?.children[active]
+    if (!thumb) return
+    strip.scrollTo({ left: thumb.offsetLeft - (strip.clientWidth - thumb.offsetWidth) / 2, behavior: 'smooth' })
+  }, [active, groupIndex])
 
-  const onRealIndexChange = (s) => {
-    const real = s.realIndex % n
-    setActive(real)
-    if (real === shown.current.last) return
-    shown.current.last = real
-    shown.current.count += 1
-    // Played through every reel → move on to the next tab
-    if (shown.current.count >= n) pickGroup((groupIndex + 1) % reelGroups.length)
-  }
-
-  const onTimeLeft = (_s, _time, progress) => {
-    const bar = barRefs.current[groupIndex]
-    if (bar) bar.style.transform = `scaleX(${Math.min(1, (shown.current.count + (1 - progress)) / n)})`
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') go(-1)
+    if (e.key === 'ArrowRight') go(1)
   }
 
   return (
-    <div ref={rootRef} className="grid items-center gap-10 lg:grid-cols-[minmax(300px,380px)_1fr] lg:gap-6">
+    <div ref={rootRef} className="grid items-center gap-10 lg:grid-cols-[minmax(300px,370px)_1fr] lg:gap-8">
       {/* ── Left: copy + tabs ───────────────────────────── */}
       <div className="perf-meta-copy flex min-w-0 flex-col gap-7">
         <BlockHeading num="01" glyph={<MetaGlyph size={26} />} title="Meta Ads" sub="Real client reels · Instagram & Facebook" />
 
         <p className="text-[15px] leading-[1.65] text-[var(--muted)]">
-          Reels we made for real brands — with the likes and comments they actually earned.
+          {isEstate ? 'Reel ads and client reels' : 'Reels'} we made for real brands — with the likes and comments they actually earned.
           Our best performer passed <span className="text-white">{compact(reelGroups[0].reels[0].likes)} likes</span>.
         </p>
 
-        <div role="tablist" aria-label="Client reels" className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:flex-col lg:overflow-visible">
-          {reelGroups.map((g, i) => {
+        <div role="tablist" aria-label="Meta ads and client reels" className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:flex-col lg:overflow-visible">
+          {groups.map((g, i) => {
             const Icon = groupIcons[g.icon]
             const on = i === groupIndex
-            const likes = g.reels.reduce((s, r) => s + r.likes, 0)
+            const likes = g.reels.reduce((s, r) => s + (r.likes ?? 0), 0)
             return (
               <button
                 key={g.id}
@@ -644,28 +630,23 @@ function MetaAds() {
                 aria-selected={on}
                 onClick={() => pickGroup(i)}
                 className={`
-                  group relative flex shrink-0 items-center gap-3 overflow-hidden rounded-[18px] border py-3 pl-3 pr-4 text-left
-                  transition-[background-color,border-color,box-shadow,transform] duration-500 ease-[var(--ease)]
+                  group relative flex shrink-0 items-center gap-3.5 overflow-hidden rounded-[20px] border p-2.5 pr-4 text-left
+                  transition-[background-color,border-color,box-shadow] duration-500 ease-[var(--ease)]
                   ${
                     on
-                      ? 'border-[rgba(83,247,251,0.45)] bg-[linear-gradient(110deg,rgba(83,247,251,0.16),rgba(79,155,255,0.08))] shadow-[0_14px_40px_-18px_rgba(83,247,251,0.6)]'
-                      : 'border-white/[0.07] bg-white/[0.025] hover:border-white/15 hover:bg-white/[0.05] lg:hover:translate-x-1'
+                      ? 'border-[rgba(83,247,251,0.4)] bg-[linear-gradient(110deg,rgba(83,247,251,0.14),rgba(79,155,255,0.06)_60%,rgba(255,255,255,0.02))] shadow-[0_18px_44px_-22px_rgba(83,247,251,0.7)]'
+                      : 'border-white/[0.07] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.045]'
                   }
                 `}
               >
-                <span
-                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-[12px] transition-colors duration-500 ${
-                    on ? 'bg-[var(--cyan)] text-[var(--navy)] shadow-[0_0_20px_-4px_rgba(83,247,251,0.8)]' : 'bg-white/[0.06] text-[var(--cyan)]'
-                  }`}
-                >
-                  <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
-                </span>
-                <span className="flex flex-1 flex-col">
+                <CoverStack reels={g.reels} on={on} />
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className={`whitespace-nowrap font-[family-name:var(--font-display)] text-[14.5px] font-semibold ${on ? 'text-white' : 'text-white/75'}`}>
                     {g.label}
                   </span>
                   <span className="flex items-center gap-1.5 whitespace-nowrap text-[11.5px] text-[var(--faint)]">
-                    {pad(g.reels.length)} reels
+                    <Icon size={12} strokeWidth={2} className={on ? 'text-[var(--cyan)]' : ''} aria-hidden="true" />
+                    {pad(g.reels.length)} {g.id === metaAdGroup.id ? 'ads' : 'reels'}
                     {showCount(likes / g.reels.length) && (
                       <>
                         {' · '}
@@ -674,17 +655,17 @@ function MetaAds() {
                     )}
                   </span>
                 </span>
-                <ChevronRight
-                  size={17}
-                  className={`transition-[transform,color] duration-500 max-lg:hidden ${on ? 'translate-x-0.5 text-[var(--cyan)]' : 'text-white/25'}`}
-                />
+                {on ? (
+                  <Equalizer paused={paused} />
+                ) : (
+                  <ChevronRight size={17} className="text-white/25 transition-[transform,color] duration-500 group-hover:translate-x-0.5 group-hover:text-white/60 max-lg:hidden" />
+                )}
 
-                {/* Progress through this tab's reels */}
+                {/* How far through this tab */}
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[2px] bg-white/[0.04]">
                   <span
-                    ref={(el) => (barRefs.current[i] = el)}
-                    className="block h-full origin-left bg-[linear-gradient(90deg,var(--cyan),#4f9bff)] shadow-[0_0_10px_rgba(83,247,251,0.8)]"
-                    style={{ transform: 'scaleX(0)' }}
+                    className="block h-full origin-left bg-[linear-gradient(90deg,var(--cyan),#4f9bff)] shadow-[0_0_10px_rgba(83,247,251,0.8)] transition-transform duration-700 ease-[var(--ease)]"
+                    style={{ transform: `scaleX(${on ? (active + 1) / g.reels.length : 0})` }}
                   />
                 </span>
               </button>
@@ -697,118 +678,100 @@ function MetaAds() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--cyan)] opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--cyan)]" />
           </span>
-          Auto-playing · tap a reel to watch
+          Auto-playing · tap phone for sound
         </p>
       </div>
 
-      {/* ── Right: stage ─────────────────────────────────── */}
-      <div className="perf-meta-stage relative min-w-0">
-        {/* Decorative rings + glow behind the cards */}
-        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[46%] h-[min(640px,120vw)] w-[min(640px,120vw)] -translate-x-1/2 -translate-y-1/2">
-          <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(79,155,255,0.24),rgba(83,247,251,0.06)_45%,transparent_68%)]" />
-          <div className="perf-ring absolute inset-[8%] rounded-full border border-dashed border-[rgba(83,247,251,0.16)]" />
-          <div className="perf-ring perf-ring--rev absolute inset-[22%] rounded-full border border-[rgba(79,155,255,0.14)]" />
+      {/* ── Right: phone stage ───────────────────────────── */}
+      <div className="perf-meta-stage relative isolate min-w-0" onKeyDown={onKeyDown}>
+        {/* Ambient light taken from the reel on screen */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 grid place-items-center max-md:hidden">
+          <img
+            key={current.id}
+            src={current.cover}
+            alt=""
+            className="h-[64%] w-[52%] rounded-full object-cover opacity-50 blur-[70px] saturate-150 [animation:fade_1.2s_var(--ease)_both]"
+          />
         </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[44%] -z-10 h-[min(600px,115vw)] w-[min(600px,115vw)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(79,155,255,0.2),rgba(83,247,251,0.05)_45%,transparent_68%)]"
+        />
 
-        <div className="relative [mask-image:linear-gradient(90deg,transparent,#000_14%,#000_86%,transparent)]">
-          <Swiper
-            key={group.id}
-            modules={[EffectCoverflow, Autoplay, Keyboard, A11y]}
-            effect="coverflow"
-            loop
-            centeredSlides
-            slidesPerView="auto"
-            speed={900}
-            grabCursor
-            slideToClickedSlide
-            keyboard={{ enabled: true, onlyInViewport: true }}
-            autoplay={{ delay: SLIDE_MS, disableOnInteraction: false, pauseOnMouseEnter: true }}
-            coverflowEffect={{ rotate: 0, stretch: 70, depth: 240, modifier: 1, scale: 0.9, slideShadows: false }}
-            onSwiper={setSwiper}
-            onRealIndexChange={onRealIndexChange}
-            onAutoplayTimeLeft={onTimeLeft}
-            className="perf-swiper !py-8 [animation:fade_0.7s_var(--ease)_both]"
-          >
-            {slides.map((reel, i) => (
-              <SwiperSlide key={`${group.id}-${i}`} className="!w-[clamp(210px,19vw,272px)] max-sm:!w-[58vw]">
-                {({ isActive }) => (
-                  <ReelCard
-                    reel={reel}
-                    rank={group.id === 'top' ? (i % n) + 1 : null}
-                    isActive={isActive}
-                    onOpen={() => isActive && open(toModalReel(reel))}
-                  />
-                )}
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
+        <div
+          className="relative mx-auto w-fit py-3"
+          onPointerEnter={(e) => e.pointerType === 'mouse' && setHover(true)}
+          onPointerLeave={() => setHover(false)}
+        >
+          <SideCard reel={prev} side="left" onClick={() => go(-1)} />
+          <SideCard reel={next} side="right" onClick={() => go(1)} />
 
-        {/* Floating numbers for the centred reel */}
-        {showCount(current?.likes) && (
-          <div key={`a-${group.id}-${active}`} className="perf-float pointer-events-none absolute left-[3%] top-[14%] z-10 max-md:hidden">
-            <ResultBadge icon={Heart} label="Likes" value={compact(current.likes)} tone="pink" />
-          </div>
-        )}
-        {showCount(current?.views ?? current?.comments) && (
-          <div key={`b-${group.id}-${active}`} className="perf-float perf-float--late pointer-events-none absolute bottom-[24%] right-[3%] z-10 max-md:hidden">
-            {current.views ? (
-              <ResultBadge icon={Eye} label="Views" value={compact(current.views)} tone="blue" />
+          <MetaPhone
+            reel={current}
+            storyKey={`${group.id}-${active}`}
+            count={n}
+            active={active}
+            paused={paused}
+            play={inView && !openReel}
+            onStoryEnd={onStoryEnd}
+            onOpen={() => open(toModalReel(current))}
+          />
+
+          {/* Floating facts beside the phone */}
+          <div key={`a-${current.id}`} className="perf-float pointer-events-none absolute right-[calc(100%-18px)] top-[14%] z-20 max-xl:hidden">
+            {current.ad ? (
+              <InfoChip icon={<MetaGlyph size={18} />} label="Format" value="9:16 Reel ad" />
+            ) : showCount(current.likes) ? (
+              <ResultBadge icon={Heart} label="Likes" value={compact(current.likes)} tone="pink" />
             ) : (
-              <ResultBadge icon={MessageCircle} label="Comments" value={compact(current.comments)} tone="blue" />
+              <InfoChip icon={<MetaGlyph size={18} />} label="Client reel" value={current.kind} />
             )}
           </div>
-        )}
-
-        {/* Arrows */}
-        {[
-          { dir: 'prev', Icon: ChevronLeft, cls: 'left-0', go: () => swiper?.slidePrev() },
-          { dir: 'next', Icon: ChevronRight, cls: 'right-0', go: () => swiper?.slideNext() },
-        ].map(({ dir, Icon, cls, go }) => (
-          <button
-            key={dir}
-            type="button"
-            onClick={go}
-            aria-label={dir === 'prev' ? 'Previous reel' : 'Next reel'}
-            className={`
-              absolute top-[46%] z-20 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full
-              border border-white/15 bg-[rgba(11,18,41,0.75)] text-white backdrop-blur-md
-              transition-[background-color,border-color,color,box-shadow,transform] duration-300 ease-[var(--ease)]
-              hover:scale-105 hover:border-[var(--cyan)] hover:bg-[var(--cyan)] hover:text-[var(--navy)] hover:shadow-[0_0_28px_-4px_rgba(83,247,251,0.8)]
-              max-sm:h-10 max-sm:w-10
-              ${cls}
-            `}
-          >
-            <Icon size={20} />
-          </button>
-        ))}
-
-        {/* Client + dots */}
-        <div className="relative flex flex-col items-center gap-3 text-center">
-          <p key={`${group.id}-${active}`} className="text-[13px] text-[var(--faint)] [animation:fade_0.5s_var(--ease)_both]">
-            <span className="font-semibold text-white">{current?.name}</span> · {current?.kind} · {current?.place}
-          </p>
-          {showCount(current?.likes) && (
-            <div className="flex gap-2 md:hidden">
-              <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[12px] text-white/70">
-                Likes <b className="text-white">{compact(current.likes)}</b>
-              </span>
-              {showCount(current.comments) && (
-                <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[12px] text-white/70">
-                  Comments <b className="text-white">{compact(current.comments)}</b>
-                </span>
-              )}
-            </div>
-          )}
-          <div className="flex items-center gap-1.5" aria-hidden="true">
-            {group.reels.map((_, i) => (
-              <span
-                key={i}
-                className={`h-1.5 rounded-full transition-all duration-500 ${i === active ? 'w-7 bg-[var(--cyan)] shadow-[0_0_10px_rgba(83,247,251,0.7)]' : 'w-1.5 bg-white/20'}`}
-              />
-            ))}
+          <div key={`b-${current.id}`} className="perf-float perf-float--late pointer-events-none absolute bottom-[22%] left-[calc(100%-18px)] z-20 max-xl:hidden">
+            {!current.ad && current.views ? (
+              <ResultBadge icon={Eye} label="Views" value={compact(current.views)} tone="blue" />
+            ) : !current.ad && showCount(current.comments) ? (
+              <ResultBadge icon={MessageCircle} label="Comments" value={compact(current.comments)} tone="blue" />
+            ) : (
+              <InfoChip icon={<Navigation size={16} strokeWidth={2.2} />} label={current.ad ? 'Project' : current.name} value={current.place} />
+            )}
           </div>
         </div>
+
+        {/* Thumbnail strip + arrows */}
+        <div className="mt-5 flex items-center justify-center gap-3">
+          <StageArrow dir="prev" onClick={() => go(-1)} />
+          <div ref={stripRef} className="no-scrollbar relative flex max-w-[min(520px,100%)] gap-2 overflow-x-auto px-1.5 py-2">
+            {group.reels.map((r, i) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-label={`Show ${r.name}`}
+                aria-current={i === active}
+                className={`
+                  relative h-[62px] w-[36px] shrink-0 overflow-hidden rounded-[10px] bg-[var(--navy-2)]
+                  transition-[opacity,transform,box-shadow] duration-500 ease-[var(--ease)]
+                  ${
+                    i === active
+                      ? 'scale-110 opacity-100 shadow-[0_0_0_2px_var(--cyan),0_0_18px_-2px_rgba(83,247,251,0.8)]'
+                      : 'opacity-40 hover:opacity-90'
+                  }
+                `}
+              >
+                <img className="h-full w-full object-cover" src={r.cover} alt="" loading="lazy" decoding="async" draggable="false" />
+              </button>
+            ))}
+          </div>
+          <StageArrow dir="next" onClick={() => go(1)} />
+        </div>
+
+        <p key={`${group.id}-${active}`} className="mt-1.5 text-center text-[12.5px] text-[var(--faint)] [animation:fade_0.5s_var(--ease)_both]">
+          <span className="font-semibold text-white">{pad(active + 1)}</span>
+          <span className="text-white/30"> / {pad(n)}</span>
+          <span className="mx-2 text-white/20">|</span>
+          {current.name} · {current.place}
+        </p>
       </div>
     </div>
   )
@@ -833,89 +796,245 @@ export function ResultBadge({ icon: Icon, label, value, tone }) {
   )
 }
 
-/* One client reel, styled like an Instagram reel */
-function ReelCard({ reel, rank, isActive, onOpen }) {
+// Smaller glass chip for words rather than numbers
+function InfoChip({ icon, label, value }) {
+  return (
+    <div className="flex max-w-[250px] items-center gap-3 rounded-[18px] border border-white/[0.12] bg-[rgba(11,18,41,0.72)] py-2.5 pl-2.5 pr-4 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[rgba(83,247,251,0.1)] text-[var(--cyan)]">{icon}</span>
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/50">{label}</span>
+        <span className="truncate font-[family-name:var(--font-display)] text-[15px] font-bold leading-tight text-white">{value}</span>
+      </span>
+    </div>
+  )
+}
+
+/* Three covers fanned like a hand of cards */
+function CoverStack({ reels, on }) {
+  return (
+    <span aria-hidden="true" className="relative h-[48px] w-[60px] shrink-0">
+      {reels.slice(0, 3).map((r, i) => (
+        <img
+          key={r.id}
+          src={r.cover}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+          className="absolute top-0 h-[48px] w-[30px] rounded-[8px] border border-[var(--navy)] object-cover shadow-[0_8px_16px_-6px_rgba(0,0,0,0.8)] transition-[transform,filter] duration-500 ease-[var(--ease)]"
+          style={{
+            left: i * 14,
+            zIndex: 3 - i,
+            transform: `rotate(${(i - 1) * (on ? 9 : 5)}deg) translateY(${on ? Math.abs(i - 1) * 2 : 0}px)`,
+            filter: on ? 'none' : 'saturate(0.6) brightness(0.8)',
+          }}
+        />
+      ))}
+    </span>
+  )
+}
+
+/* "Now playing" bars on the active tab */
+function Equalizer({ paused }) {
+  return (
+    <span aria-hidden="true" className="flex h-4 items-end gap-[3px]">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="perf-eq w-[3px] rounded-full bg-[var(--cyan)] shadow-[0_0_8px_rgba(83,247,251,0.8)]"
+          style={{ animationDelay: `${i * -0.35}s`, animationPlayState: paused ? 'paused' : 'running' }}
+        />
+      ))}
+    </span>
+  )
+}
+
+function StageArrow({ dir, onClick }) {
+  const Icon = dir === 'prev' ? ChevronLeft : ChevronRight
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={dir === 'prev' ? 'Previous reel' : 'Next reel'}
+      className="
+        grid h-11 w-11 shrink-0 place-items-center rounded-full
+        border border-white/15 bg-[rgba(11,18,41,0.75)] text-white backdrop-blur-md
+        transition-[background-color,border-color,color,box-shadow,transform] duration-300 ease-[var(--ease)]
+        hover:scale-105 hover:border-[var(--cyan)] hover:bg-[var(--cyan)] hover:text-[var(--navy)] hover:shadow-[0_0_28px_-4px_rgba(83,247,251,0.8)]
+      "
+    >
+      <Icon size={19} />
+    </button>
+  )
+}
+
+/* The reels either side of the phone, tilted back */
+function SideCard({ reel, side, onClick }) {
+  const left = side === 'left'
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      tabIndex={-1}
+      aria-label={left ? 'Previous reel' : 'Next reel'}
+      className={`
+        group absolute top-1/2 z-0 aspect-[9/16] w-[80%] overflow-hidden rounded-[30px]
+        border border-white/10 bg-[var(--navy-2)] shadow-[0_40px_70px_-30px_rgba(0,0,0,0.95)]
+        ${left ? 'left-[-48%] origin-bottom-right max-sm:left-[-30%]' : 'right-[-48%] origin-bottom-left max-sm:right-[-30%]'}
+      `}
+      style={{ transform: `translateY(-50%) rotate(${left ? -8 : 8}deg)` }}
+    >
+      <img key={reel.id} className="h-full w-full object-cover [animation:fade_0.6s_var(--ease)_both]" src={reel.cover} alt="" loading="lazy" decoding="async" draggable="false" />
+      <span className="absolute inset-0 bg-[#05081a] opacity-60 transition-opacity duration-500 group-hover:opacity-35" />
+    </button>
+  )
+}
+
+/* A phone playing the reel, dressed in the Instagram Reels UI */
+function MetaPhone({ reel, storyKey, count, active, paused, play, onStoryEnd, onOpen }) {
   const counts = [
     { key: 'likes', Icon: Heart, n: reel.likes, like: true },
     { key: 'comments', Icon: MessageCircle, n: reel.comments },
   ]
 
   return (
-    <div
-      onClick={onOpen}
-      className={`
-        group relative aspect-[9/16] w-full overflow-hidden rounded-[26px] border bg-[var(--navy-2)]
-        transition-[border-color,box-shadow] duration-700 ease-[var(--ease)]
-        ${
-          isActive
-            ? 'cursor-pointer border-[rgba(83,247,251,0.6)] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9),0_0_70px_-14px_rgba(83,247,251,0.55)]'
-            : 'border-white/10 shadow-[0_30px_60px_-24px_rgba(0,0,0,0.8)]'
-        }
-      `}
-    >
-      {/* Cover (slow push-in while centred) */}
-      <div className={`absolute inset-0 transition-transform duration-[6000ms] ease-out ${isActive ? 'scale-[1.1]' : 'scale-100'}`}>
-        <img className="h-full w-full object-cover" src={reel.cover} alt="" loading="lazy" decoding="async" draggable="false" />
-      </div>
+    <div className="relative z-10 w-[clamp(232px,min(19vw,34vh),290px)] rounded-[46px] bg-[linear-gradient(150deg,#323c5e,#0c1226_42%,#1c2545)] p-[8px] shadow-[0_60px_110px_-30px_rgba(0,0,0,0.95),0_0_0_1px_rgba(255,255,255,0.09),inset_0_1px_0_rgba(255,255,255,0.18),0_0_90px_-24px_rgba(83,247,251,0.5)] max-sm:w-[64vw]">
+      {/* Side buttons */}
+      <span aria-hidden="true" className="absolute -left-[3px] top-[18%] h-8 w-[3px] rounded-l-sm bg-[#323c5e]" />
+      <span aria-hidden="true" className="absolute -left-[3px] top-[28%] h-12 w-[3px] rounded-l-sm bg-[#323c5e]" />
+      <span aria-hidden="true" className="absolute -right-[3px] top-[24%] h-16 w-[3px] rounded-r-sm bg-[#323c5e]" />
 
-      {/* Shades for legibility */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(5,8,26,0.8),transparent)]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[50%] bg-[linear-gradient(0deg,rgba(5,8,26,0.95),rgba(5,8,26,0.5)_55%,transparent)]" />
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onOpen}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onOpen())}
+        aria-label={`Watch ${reel.name} with sound`}
+        className="relative aspect-[9/16] cursor-pointer overflow-hidden rounded-[38px] bg-black outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan)]"
+      >
+        <div key={storyKey} className="absolute inset-0 [animation:perf-swap_0.7s_var(--ease)_both]">
+          <PhoneVideo reel={reel} play={play} />
+        </div>
 
-      {/* Header: client account */}
-      <div className="absolute inset-x-3 top-3 flex items-center gap-2.5">
-        <span className="shrink-0 rounded-full bg-[conic-gradient(from_200deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75)] p-[2px]">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--navy)] font-[family-name:var(--font-display)] text-[11px] font-bold text-white">
-            {initials(reel.name)}
-          </span>
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate font-[family-name:var(--font-display)] text-[12.5px] font-bold text-white">{reel.name}</span>
-          <span className="truncate text-[10.5px] text-white/70">@{reel.handle}</span>
-        </span>
-        {rank && (
-          <span
-            className={`shrink-0 rounded-full px-2 py-1 font-[family-name:var(--font-display)] text-[10.5px] font-bold ${
-              rank === 1 ? 'bg-[linear-gradient(135deg,#ffd166,#ff7a50)] text-[var(--navy)]' : 'bg-black/50 text-white/80 backdrop-blur-md'
-            }`}
-          >
-            #{rank}
-          </span>
-        )}
-      </div>
+        {/* Shades for legibility */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(0,0,0,0.65),transparent)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%] bg-[linear-gradient(0deg,rgba(0,0,0,0.9),rgba(0,0,0,0.45)_50%,transparent)]" />
 
-      {/* Reel actions with real counts */}
-      <div className="absolute bottom-[96px] right-2.5 flex flex-col items-center gap-3.5 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" aria-hidden="true">
-        {counts.map(({ key, Icon, n, like }) => (
-          <span key={key} className="flex flex-col items-center gap-0.5">
-            <Icon size={22} className={like && isActive && showCount(n) ? 'perf-like fill-[#ff4d6d] text-[#ff4d6d]' : ''} />
-            {showCount(n) && <span className="text-[10.5px] font-semibold">{compact(n)}</span>}
+        {/* Status bar + island */}
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 flex h-9 items-center justify-between px-6 text-[11px] font-semibold text-white">
+          <span>9:41</span>
+          <span className="absolute left-1/2 top-[7px] h-[22px] w-[76px] -translate-x-1/2 rounded-full bg-black" />
+          <span className="flex items-center gap-1">
+            <Wifi size={12} strokeWidth={2.6} />
+            <span className="relative h-[10px] w-[20px] rounded-[3px] border border-white/70 p-[1.5px]">
+              <span className="block h-full w-[72%] rounded-[1px] bg-white" />
+            </span>
           </span>
-        ))}
-        <Send size={20} />
-      </div>
+        </div>
 
-      {/* Caption + watch */}
-      <div className="absolute inset-x-3 bottom-3 flex flex-col gap-2.5">
-        <p className="line-clamp-2 pr-10 text-[12.5px] font-medium leading-snug text-white/95">{reel.caption}</p>
-        <span className="flex items-center justify-between rounded-[12px] bg-[linear-gradient(100deg,#962fbf,#d62976_45%,#fa7e1e)] px-3.5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(214,41,118,0.9)]">
-          <span className="flex items-center gap-2">
-            <Play size={12} fill="currentColor" aria-hidden="true" />
-            Watch reel
+        {/* Story bars — the active one times the auto-advance */}
+        <div aria-hidden="true" className="absolute inset-x-4 top-10 flex gap-[3px]">
+          {Array.from({ length: count }, (_, i) => (
+            <span key={i} className="h-[2.5px] flex-1 overflow-hidden rounded-full bg-white/25">
+              {i < active && <span className="block h-full bg-white" />}
+              {i === active && (
+                <span
+                  key={storyKey}
+                  className="perf-story block h-full bg-white"
+                  style={{ animationDuration: `${STORY_MS}ms`, animationPlayState: paused ? 'paused' : 'running' }}
+                  onAnimationEnd={onStoryEnd}
+                />
+              )}
+            </span>
+          ))}
+        </div>
+
+        {/* Header */}
+        <div className="absolute inset-x-4 top-[54px] flex items-center justify-between">
+          <span className="font-[family-name:var(--font-display)] text-[16px] font-bold text-white drop-shadow">Reels</span>
+          <span className="flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[10.5px] font-semibold text-white backdrop-blur-md">
+            <VolumeX size={12} aria-hidden="true" />
+            Tap for sound
           </span>
-          {showCount(reel.views) ? (
-            <span className="flex items-center gap-1 text-white/90">
-              <Eye size={13} aria-hidden="true" /> {compact(reel.views)}
+        </div>
+
+        {/* Actions with real counts */}
+        <div aria-hidden="true" className="absolute bottom-[112px] right-2.5 flex flex-col items-center gap-3.5 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
+          {counts.map(({ key, Icon, n, like }) => (
+            <span key={key} className="flex flex-col items-center gap-0.5">
+              <Icon size={22} className={like && showCount(n) ? 'perf-like fill-[#ff4d6d] text-[#ff4d6d]' : ''} />
+              {showCount(n) && <span className="text-[10.5px] font-semibold">{compact(n)}</span>}
+            </span>
+          ))}
+          <Send size={20} />
+        </div>
+
+        {/* Account, caption, call to action */}
+        <div key={`i-${storyKey}`} className="absolute inset-x-3 bottom-3.5 flex flex-col gap-2 [animation:fade_0.6s_var(--ease)_0.15s_both]">
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 rounded-full bg-[conic-gradient(from_200deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75)] p-[2px]">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--navy)] font-[family-name:var(--font-display)] text-[10px] font-bold text-white">
+                {initials(reel.name)}
+              </span>
+            </span>
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate font-[family-name:var(--font-display)] text-[12.5px] font-bold text-white">{reel.name}</span>
+              <span className="truncate text-[10.5px] text-white/70">{reel.ad ? 'Sponsored' : `@${reel.handle}`}</span>
+            </span>
+            <span className="ml-auto shrink-0 rounded-[8px] border border-white/40 px-2.5 py-1 text-[10.5px] font-semibold text-white">Follow</span>
+          </div>
+          <p className="line-clamp-2 pr-9 text-[11.5px] font-medium leading-snug text-white/90">{reel.caption}</p>
+          {reel.ad ? (
+            <span className="flex items-center justify-between rounded-[10px] bg-[#0866ff] px-3 py-2 text-[12px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(8,102,255,0.9)]">
+              Learn more
+              <ChevronRight size={15} aria-hidden="true" />
             </span>
           ) : (
-            <ChevronRight size={15} aria-hidden="true" />
+            <span className="flex items-center gap-1.5 truncate text-[10.5px] text-white/75">
+              <Music size={11} aria-hidden="true" /> Original audio · {reel.name}
+            </span>
           )}
-        </span>
+        </div>
       </div>
-
-      {/* Dims the cards that aren't centred */}
-      <div className="perf-dim pointer-events-none absolute inset-0 bg-[#05081a] transition-opacity duration-700" />
     </div>
+  )
+}
+
+/* Plays the reel muted on the phone screen; the poster shows until it's
+   ready, and phones share their few video slots (see useVideoSlot). */
+function PhoneVideo({ reel, play }) {
+  const ref = useRef(null)
+  const [ready, setReady] = useState(false)
+  const src = videoOf(reel)
+  const hasMp4 = useVideoAvailable(src)
+  const allowed = useVideoSlot(play && hasMp4 === true)
+  useStopDownloadWhenHidden(ref, allowed)
+
+  useEffect(() => {
+    const v = ref.current
+    if (!allowed || !v) return
+    v.muted = true
+    v.play().catch(() => {})
+  }, [allowed])
+
+  return (
+    <>
+      <img className="absolute inset-0 h-full w-full object-cover" src={reel.cover} alt="" decoding="async" draggable="false" />
+      {allowed && (
+        <video
+          ref={ref}
+          src={src}
+          muted
+          playsInline
+          autoPlay
+          loop
+          preload="auto"
+          aria-hidden="true"
+          onPlaying={() => setReady(true)}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${ready ? 'opacity-100' : 'opacity-0'}`}
+        />
+      )}
+    </>
   )
 }
 

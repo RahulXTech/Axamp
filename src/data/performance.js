@@ -12,8 +12,32 @@ const byLikes = (a, b) => (b.views ?? 0) - (a.views ?? 0) || b.likes - a.likes
 export const reelGroups = [
   { id: 'top', label: 'Top Performing', icon: 'flame', reels: [...clientReels].sort(byLikes) },
   { id: 'estate', label: 'Real Estate & Clubs', icon: 'tower', reels: clientReels.filter((r) => r.group === 'estate').sort(byLikes) },
-  { id: 'retail', label: 'Malls & Cafés', icon: 'store', reels: clientReels.filter((r) => r.group === 'retail').sort(byLikes) },
 ]
+
+// Real estate Meta ad creatives (16 Oct 2026) — Real Estate view only.
+// Files: /public/videos/<id>.mp4, covers /public/posters/<id>.webp.
+// They're ads, not posts, so there are no public likes or comments.
+const adRows = [
+  { id: 'ad-bptp-skynest', name: 'BPTP Skynest', place: 'Sector 80, Faridabad', caption: 'Greater Faridabad’s twin towers — 3 & 4 BHK residences from ₹4.36 Cr' },
+  { id: 'ad-royal-green-county', name: 'Royal Green County', place: 'Kundli, Sonipat', caption: 'Planned plots by Royal Green Realty, minutes from the Kundli Metro' },
+  { id: 'ad-aditya-rosemont', name: 'Rosemont Residency', place: 'Ghaziabad', caption: 'Aditya’s low-density Rosemont Residency — club lobby, indoor games and café' },
+  { id: 'ad-mdb-london-square', name: 'MDB London Square', place: 'Delhi NCR', caption: 'Exclusive Sales Reward Scheme — tours abroad, bikes and cars on bookings' },
+  { id: 'ad-ace-ultra-luxury', name: 'ACE Group', place: 'Noida', caption: 'Ultra-luxury living — a walk through the towers, gardens and pool deck' },
+  { id: 'ad-vvip-yamuna-site-visit', name: 'VVIP Yamuna', place: 'Yamuna Expressway', caption: 'Site visit — the grand clubhouse, the sample flat and the master plan' },
+]
+
+export const metaAdGroup = {
+  id: 'ads',
+  label: 'Real Estate Ads',
+  icon: 'megaphone',
+  reels: adRows.map((r) => ({
+    ...r,
+    ad: true,
+    kind: 'Meta ad',
+    video: `/videos/${r.id}.mp4`,
+    cover: `/posters/${r.id}.webp`,
+  })),
+}
 
 // Big numbers under the heading — computed from the reels above
 const totalComments = clientReels.reduce((s, r) => s + r.comments, 0)

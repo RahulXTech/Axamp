@@ -24,17 +24,20 @@ const FROM = {
  * its content later) — call initSlides(thatBlock); everyone else skips it.
  */
 export function initSlides(root = document) {
+  // Reduced motion: the blocks still fade in, but don't travel
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   const ctx = gsap.context(() => {
     const owner = root === document ? null : root
     gsap.utils.toArray('[data-slide]', root).forEach((el) => {
       if (el.closest('[data-slide-root]') !== owner) return
-      const from = FROM[el.dataset.slide] || FROM.up
+      const from = reduced ? {} : FROM[el.dataset.slide] || FROM.up
       const stagger = el.hasAttribute('data-slide-stagger')
 
       gsap.from(stagger ? el.children : el, {
         ...from,
         autoAlpha: 0,
-        duration: 1.1,
+        duration: reduced ? 0.6 : 1.1,
         ease: 'power3.out',
         stagger: stagger ? 0.09 : 0,
         scrollTrigger: {

@@ -11,7 +11,7 @@ import {
 import PageHero from '../components/PageHero'
 import ContentCarousel from '../components/ContentCarousel'
 import { LinkedInIcon, WhatsAppIcon } from '../components/icons'
-import { founder, growth, principles, stats, team, teamSlots, workflow } from '../data/about'
+import { cmo, growth, principles, stats, team, teamSlots, workflow } from '../data/about'
 import { site, whatsappLink } from '../data/site'
 import { useGo } from '../lib/nav'
 
@@ -192,7 +192,7 @@ function FounderSpotlight({ f }) {
             <div className="aspect-[15/16] w-[300px] overflow-hidden rounded-[28px] bg-[var(--navy)] max-[1100px]:w-[250px] max-[1023px]:w-[300px] max-[600px]:w-[240px]">
               <img
                 src={f.photo}
-                alt={f.name}
+                alt={`${f.name}, ${f.role} at AXAMP`}
                 width={300}
                 height={320}
                 loading="lazy"
@@ -236,7 +236,7 @@ function FounderSpotlight({ f }) {
           {/* Verified tag */}
           <span className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-[rgba(83,247,251,0.4)] bg-[var(--navy)] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--cyan)] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)]">
             <BadgeCheck size={14} aria-hidden="true" />
-            Founder
+            {f.tag || 'Founder'}
           </span>
         </div>
       </div>
@@ -428,10 +428,13 @@ export default function About() {
         </dl>
       </PageHero>
 
-      {/* ── Founders ───────────────────────────────────── */}
+      {/* ── CMO spotlight ──────────────────────────────── */}
+      {/* Founder section hidden for now — to bring it back, import `founder` and render
+          <Heading eyebrow="Meet the founder" title="The mind behind the magic." />
+          <FounderSpotlight f={founder} /> */}
       <Section>
-        <Heading eyebrow="Meet the founder" title="The mind behind the magic." />
-        <FounderSpotlight f={founder} />
+        <Heading eyebrow="Meet our CMO" title="The strategist behind our growth." />
+        <FounderSpotlight f={cmo} />
       </Section>
 
       {/* ── Team ───────────────────────────────────────── */}
@@ -450,11 +453,14 @@ export default function About() {
       </Section>
 
       {/* ── Content principles ─────────────────────────── */}
-      <Section className="bg-[linear-gradient(180deg,transparent,rgba(15,24,54,0.6)_20%,rgba(15,24,54,0.6)_80%,transparent)]">
+      {/* overflow-x-clip: the circle's side cards (and its full-width stage on
+          desktop) reach past the screen edge — without it phones can pan sideways */}
+      <Section className="overflow-x-clip bg-[linear-gradient(180deg,transparent,rgba(15,24,54,0.6)_20%,rgba(15,24,54,0.6)_80%,transparent)]">
         <Heading
           center
           eyebrow="Content that matters"
-          title="Real, raw, storytelling, fun and relatable."
+          oneLine
+          title={<>Real, relatable, storytelling,<br />hook and call to action.</>}
         />
         <ContentCarousel items={principles} />
       </Section>

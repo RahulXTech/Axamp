@@ -222,6 +222,22 @@ Until a domain is verified, Resend only allows the test sender `onboarding@resen
 
 **3. `CONTACT_TO_EMAIL`** — any inbox your team checks. No setup needed.
 
+**4. Google Sheet (optional) — `GOOGLE_SHEETS_WEB_APP_URL`, `GOOGLE_SHEETS_SECRET`**
+
+Each lead from the lead loss report's **"Find the reason"** form is also added to the Google Sheet's **`Leads`** tab as one row: the time, name, email, mobile, then a column for every report answer and number (the "how it's worked out" note sits under its value in the same cell), then the report link and source. Row 1 gets the column headings automatically when the tab is blank. The lead still counts as received if only one of the email or the sheet gets it.
+
+The website's server posts each lead to a small **Google Apps Script web app** on the sheet ([`docs/google-apps-script.gs`](docs/google-apps-script.gs)). No Google Cloud project or service account key is needed. The secret is checked by the script and lives only on the server, never in the browser.
+
+1. Make up a long random secret (for example 40+ letters and numbers).
+2. Open the Google Sheet → **Extensions → Apps Script**. Replace everything in `Code.gs` with the contents of `docs/google-apps-script.gs` and click **Save**.
+3. In Apps Script, open **Project Settings (⚙) → Script Properties → Add script property**: name `AXAMP_SECRET`, value your secret. **Save**.
+4. Click **Deploy → New deployment → ⚙ Select type → Web app**. Set **Execute as: Me** and **Who has access: Anyone**, then **Deploy** and allow access when Google asks. Copy the **Web app URL** (it ends in `/exec`).
+5. In `.env`, set `GOOGLE_SHEETS_WEB_APP_URL` to that URL and `GOOGLE_SHEETS_SECRET` to the same secret as `AXAMP_SECRET`.
+6. Check it: opening the `/exec` URL in a browser shows `{"ok":true,"service":"AXAMP leads"}`.
+7. Rebuild (`npm run build`) and upload `dist/` again for Hostinger.
+
+If you edit the script later, publish the change with **Deploy → Manage deployments → ✏ Edit → Version: New version → Deploy**. The URL stays the same.
+
 ### Where these values are used
 
 | Environment | How the values are read |

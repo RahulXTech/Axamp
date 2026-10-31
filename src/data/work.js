@@ -7,6 +7,9 @@
 //   { ig: 'https://www.instagram.com/p/<ID>/', image: true }  (photo / carousel post)
 //   { ig: 'https://www.instagram.com/reels/<ID>/', caption: '…' }
 //   { youtube: '<YouTubeVideoID>', caption: '…' }
+//   { youtube: '<ID>', video: '/videos/<ID>.mp4', handle, name, profile }
+//                                     a YouTube Short we host ourselves —
+//                                     plays vertically, credits the channel
 // Optional overrides: video: '/videos/x.mp4', poster: '/posters/x.jpg'
 //
 // `objection` is the buyer's doubt (struck through on scroll); `answer`
@@ -19,9 +22,10 @@
 // of repeating (Pillar.jsx). The client Instagram reels that were here
 // still run in the Performance section (./reels.js).
 //
-// 7 Oct 2026 — Project Details (pd-*.mp4, ten), Site Visit (sv-*.mp4, nine)
+// 7 Oct 2026 — Project Details (pd-*.mp4), Site Visit (sv-*.mp4, nine)
 // and Informative (in-*.mp4, seven) have their own official edits in place
-// of the shared eight.
+// of the shared eight. 16 Oct 2026 — Project Details is now six Wave One
+// reels plus the two pd-*.mp4 edits that remain.
 
 import { reelById } from './reels'
 import { site } from './site'
@@ -64,18 +68,17 @@ export const pillars = [
     icon: 'building',
     objection: 'Is this actually being built?',
     answer: 'Answered on a site walkthrough.',
-    // AXAMP's official Project Details edits (7 Oct 2026) — this pillar only
+    // Project Details (16 Oct 2026) — six Wave One reels hosted in /videos
+    // and /posters, then the two AXAMP edits kept from the 7 Oct set
     reels: [
-      { file: 'pd-mdb-london-square', caption: 'MDB London Square — the build, the interiors and the sales reward scheme' },
-      { file: 'pd-bptp-skynest', caption: 'BPTP Skynest, Sector 80 Faridabad — 3 & 4 BHK residences from ₹4.36 Cr' },
-      { file: 'pd-aditya-rosemont', caption: 'Rosemont Residency by Aditya — 3 BHK living room, bedroom and balcony' },
-      { file: 'pd-royal-green-county', caption: 'Royal Green County — the gate, the avenue and the sales gallery near Kundli Metro' },
-      { file: 'pd-tonk-road-township', caption: 'Premium township off Tonk Road — Phase 2 from the air' },
-      { file: 'pd-jda-rera-plots', caption: 'JDA & RERA approved plots — the layout and roads by drone' },
+      { ig: 'https://www.instagram.com/p/Da0tRfPveuZ/', caption: 'Wave One Club — the hidden gem in the middle of Noida' },
+      { ig: 'https://www.instagram.com/p/DbeAL9po0pj/', caption: 'Wave One Club — hidden on the 15th floor in Noida' },
+      { ig: 'https://www.instagram.com/p/Da_AzVkvlJZ/', caption: 'Wave One Club — a hidden gem in the middle of Noida, walked through' },
+      { ig: 'https://www.instagram.com/p/DdUXRByzY2p/', caption: 'Wave One Club — the hidden floor on the 15th' },
+      { ig: 'https://www.instagram.com/p/DeH3iS-zxSh/', caption: 'Wave One Club — lifetime membership at Noida’s hidden gem' },
+      { ig: 'https://www.instagram.com/p/Dc_xg4oySsD/', caption: 'Wave One Mall — the project from the air' },
       { file: 'pd-society-house-tour', caption: 'Society house tour — the home, the lawns and the towers around it' },
       { file: 'pd-society-patta-plot', caption: '266.66 gaj society patta plot — walked from the main road' },
-      { file: 'pd-township-registries', caption: 'High-rise township tour — towers, pool, greens and registries' },
-      { file: 'pd-gurgaon-vs-noida', caption: 'Gurugram vs Noida — geography, planning and livability, explained' },
     ],
   },
   {
@@ -85,26 +88,26 @@ export const pillars = [
     icon: 'footprints',
     objection: 'Is anyone really buying?',
     answer: 'Answered by real visitors.',
-    // AXAMP's official Site Visit edits (7 Oct 2026) — this pillar only
+    // AXAMP's official Site Visit edits (16 Oct 2026). The MDB one is the
+    // same file the Informative pillar uses (in-mdb-london-square.mp4).
     reels: [
-      { file: 'sv-vvip-yamuna', caption: 'VVIP Yamuna — a sales gallery visit, with the model, the music and the welcome' },
-      { file: 'sv-red-carpet-sample-flat', caption: 'Red-carpet sample flat visit — the dining room, the balcony and the welcome' },
-      { file: 'sv-sector-66-site', caption: 'Sector 66 — around 4.5 acres, toured on site' },
       { file: 'sv-max-estate-128', caption: 'Max Estate 128, Noida — a hard-hat visit to the balconies and the view' },
-      { file: 'sv-sample-flat-walkthrough', caption: 'Sample flat walkthrough — living room, bedrooms and garden deck' },
-      { file: 'sv-group-108-grandthum', caption: 'Group 108 Grandthum — the lobby, the art and the atrium' },
+      { file: 'sv-sector-66-site', caption: 'Sector 66 — around 4.5 acres, toured on site' },
       { file: 'sv-dlf-phase-1-floor', caption: 'DLF Phase 1 builder floor — staircase, kitchen and living, walked through' },
       { file: 'sv-biggest-family-house', caption: 'The biggest family house — a floor-by-floor visit' },
+      { file: 'sv-sample-flat-walkthrough', caption: 'Sample flat walkthrough — living room, bedrooms and garden deck' },
       { file: 'sv-bollywood-style-floor', caption: 'Bollywood-style builder floor — chandeliers, marble and the terrace' },
+      { file: 'sv-red-carpet-sample-flat', caption: 'Red-carpet sample flat visit — the dining room, the balcony and the welcome' },
+      { file: 'in-mdb-london-square', caption: 'MDB London Square — on site: 2 acres, student footfall and ₹45K monthly rental income' },
     ],
   },
   {
     id: 'branding',
     label: 'Informative',
-    tag: 'Face · Voice',
+    tag: 'Podcast · Key leaders',
     icon: 'mic',
     objection: 'Who am I trusting with this?',
-    answer: 'Answered face to face.',
+    answer: 'Answered on a podcast with key leaders.',
     tone: 'warm',
     // AXAMP's official Informative edits (7 Oct 2026) — this pillar only
     reels: [
@@ -124,7 +127,17 @@ export const pillars = [
     icon: 'messages',
     objection: 'What do real buyers say?',
     answer: 'Answered by real buyers.',
-    reels: [V.yamuna, V.rosemont, V.clubhouse, V.mdb, V.royalGreen, V.yeida, V.gurgaonNoida, V.metro],
+    // Real buyer testimonials (16 Oct 2026) — hosted in /videos and /posters
+    reels: [
+      { ig: 'https://www.instagram.com/p/DdBq0i-Mx2F/', poster: '/posters/DdBq0i-Mx2F.jpg', caption: 'Mateshwari Group — Janakpuri buyers, two years after delivery, on why the trust still stands' },
+      { ig: 'https://www.instagram.com/p/DaZyjYBxJp7/', poster: '/posters/DaZyjYBxJp7.jpg', caption: 'Viviana Westin, Vadodara — the Bajpai family on why they chose the community and the concept' },
+      { ig: 'https://www.instagram.com/p/Dbxn5qxpdA9/', poster: '/posters/Dbxn5qxpdA9.jpg', caption: 'KRE Arihant, Udaipur — the Chaudhary family on life in their new bungalow' },
+      { ig: 'https://www.instagram.com/p/Dc02Sl6Iltn/', poster: '/posters/Dc02Sl6Iltn.jpg', caption: 'Two brothers on finding the right home for their joint family in Brampton' },
+      { ig: 'https://www.instagram.com/p/DcliMVixxPe/', poster: '/posters/DcliMVixxPe.jpg', caption: 'After 50+ homes viewed — a couple on how they finally found the one' },
+      { ig: 'https://www.instagram.com/p/DcvXQgwCATY/', poster: '/posters/DcvXQgwCATY.jpg', caption: 'Piramal Revanta, Mulund — homeowners on the planning, the detail and the quality' },
+      { ig: 'https://www.instagram.com/p/DT2u-E5DLkf/', poster: '/posters/DT2u-E5DLkf.jpg', caption: 'A happy 2BHK homeowner on the home they envisioned, delivered' },
+      { ig: 'https://www.instagram.com/p/DYgbl1kIKz_/', poster: '/posters/DYgbl1kIKz_.jpg', caption: 'Mrs. Manisha and Dr. Avnish Seth on trusting a studio with the design of their home' },
+    ],
   },
 ]
 
@@ -166,8 +179,9 @@ export function resolveReel(reel, section) {
     warm: section.tone === 'warm',
 
     // Client account + public numbers, shown in the on-site player
-    handle: info?.handle,
-    name: info && `${info.name} · ${info.place}`,
+    handle: reel.handle ?? info?.handle,
+    name: reel.name ?? (info && `${info.name} · ${info.place}`),
+    profile: reel.profile,
     client: info?.name,
     kind: info?.kind,
     place: info?.place,

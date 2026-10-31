@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Pages to index on https://axamp.com/ — one per public route in src/App.jsx.
+  Left out on purpose: /build-package/report (built from query parameters),
+  /real-estate (redirects to /) and unknown paths (the 404 page).
+  Add a page here when you add its route.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://axamp.com/</loc>
+  </url>
+  <url>
+    <loc>https://axamp.com/hospital</loc>
+  </url>
+  <url>
+    <loc>https://axamp.com/university</loc>
+  </url>
+  <url>
+    <loc>https://axamp.com/services</loc>
+  </url>
+  <url>
+    <loc>https://axamp.com/packages</loc>
+  </url>
+  <url>
+    <loc>https://axamp.com/build-package</loc>
+  </url>
+  <url>
+    <loc>https://axamp.com/about</loc>
+  </url>
+  <url>
+    <loc>https://axamp.com/contact</loc>
+  </url>
+</urlset>

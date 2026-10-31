@@ -526,7 +526,7 @@ export default function ContentCarousel({ items }) {
               onClick={() => pick(i)}
               aria-label={`Show ${item.title}`}
               aria-current={i === front || undefined}
-              className={`h-2 rounded-full transition-[width,background-color] duration-500 ease-[var(--ease)] ${
+              className={`relative h-2 rounded-full transition-[width,background-color] duration-500 ease-[var(--ease)] before:absolute before:-inset-x-1 before:-inset-y-4 ${
                 i === front ? 'w-7 bg-[var(--cyan)] shadow-[0_0_10px_rgba(83,247,251,0.7)]' : 'w-2 bg-white/20 hover:bg-white/40'
               }`}
             />

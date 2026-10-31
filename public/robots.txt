@@ -1,0 +1,9 @@
+# robots.txt for https://axamp.com/
+# Everything is crawlable except the contact form's server endpoint.
+# Scripts, styles, images and videos stay open so Google can render pages.
+
+User-agent: *
+Disallow: /api/
+Sitemap: https://axamp.com/sitemap.xml
+
+

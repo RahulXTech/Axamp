@@ -60,7 +60,14 @@ function localApi() {
  * goes to public/api/contact.php, and this writes its settings from .env
  * into dist/api/config.php (outside the JS bundle; .htaccess blocks it).
  */
-const MAILER_KEYS = ['RESEND_API_KEY', 'CONTACT_TO_EMAIL', 'CONTACT_FROM_EMAIL']
+const MAILER_KEYS = [
+  'RESEND_API_KEY',
+  'CONTACT_TO_EMAIL',
+  'CONTACT_FROM_EMAIL',
+  // The Google Sheet's Apps Script web app the lead loss report's leads go to (public/api/sheets.php)
+  'GOOGLE_SHEETS_WEB_APP_URL',
+  'GOOGLE_SHEETS_SECRET',
+]
 const phpString = (v) => `'${v.trim().replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
 
 function phpMailerConfig(env) {

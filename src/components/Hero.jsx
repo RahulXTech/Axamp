@@ -6,6 +6,7 @@ import { useGSAP } from '@gsap/react'
 import { scrollToTarget } from '../lib/scroll'
 import { useMediaQuery } from '../lib/hooks'
 import { useIndustry } from '../lib/industry'
+import { useGo } from '../lib/nav'
 import { services } from '../data/services'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
@@ -26,6 +27,7 @@ export default function Hero() {
   // Swap animation only after the first switch (the page-load `rise` covers the initial reveal)
   const [switched, setSwitched] = useState(false)
   const svc = services[active]
+  const go = useGo()
 
   const select = (i) => {
     if (i === active) return
@@ -83,6 +85,8 @@ export default function Hero() {
       className="
         relative
         h-screen h-[100svh] min-h-[560px]
+        [@media(max-height:600px)_and_(orientation:portrait)]:min-h-0
+        [@media(max-height:500px)_and_(orientation:landscape)]:min-h-0
         overflow-hidden
 
         bg-[#0b1229]
@@ -99,7 +103,12 @@ export default function Hero() {
 
           scale-[1.04]
         "
-        src={isMobile ? '/assets/Hero_section_mobile.mp4' : '/assets/Hero_section.mp4'}
+        // Same footage as Hero_section(_mobile).mp4, minus the unused audio and
+        // with the index up front so playback can start before the file is in.
+        // The poster (its first frame) shows meanwhile. Don't preload it from
+        // index.html: on iPhone that held the video back by ~1s (it competes with the app code).
+        src={isMobile ? '/assets/hero-mobile.mp4' : '/assets/hero.mp4'}
+        poster={isMobile ? '/assets/hero-poster-mobile.webp' : '/assets/hero-poster.webp'}
         autoPlay
         muted
         loop
@@ -154,6 +163,9 @@ export default function Hero() {
 
       <div ref={contentRef} className="absolute inset-0 z-20">
         {/* ── CONTENT ────────────────────────────────────── */}
+        {/* Short screens (phones in Safari with its toolbars, landscape phones):
+            the hero is pinned, so anything taller than the screen is never seen —
+            the copy tightens up and sits lower to stay clear of the nav. */}
         <div
           className="
             absolute
@@ -166,6 +178,10 @@ export default function Hero() {
             flex flex-col items-start gap-6
             max-[640px]:gap-4
 
+            max-[640px]:[@media(min-height:601px)_and_(max-height:760px)]:bottom-[72px]! max-[640px]:[@media(max-height:760px)]:gap-3!
+            [@media(max-height:600px)_and_(orientation:portrait)]:bottom-6!
+            [@media(max-height:500px)]:bottom-5! [@media(max-height:500px)]:gap-3!
+
             [animation:rise_1.2s_var(--ease)_0.2s_both]
           "
           style={{ '--accent': svc.accent, '--accent-rgb': svc.accentRgb }}
@@ -176,7 +192,7 @@ export default function Hero() {
             id="hero-service-panel"
             role="tabpanel"
             aria-labelledby={`hero-tab-${svc.id}`}
-            className="flex flex-col items-start gap-6 max-[640px]:gap-4"
+            className="flex flex-col items-start gap-6 max-[640px]:gap-4 max-[640px]:[@media(max-height:760px)]:gap-3! [@media(max-height:500px)]:gap-3!"
           >
             {/* Eyebrow */}
             <p
@@ -198,6 +214,8 @@ export default function Hero() {
               className="
                 flex flex-col
                 font-[800] text-[clamp(2.5rem,6.6vw,6.4rem)] leading-none
+                [@media(max-height:600px)_and_(orientation:portrait)]:text-[clamp(1.75rem,7svh,2.5rem)]
+                [@media(max-height:500px)_and_(orientation:landscape)]:text-[clamp(1.75rem,9svh,2.6rem)]
                 tracking-[-0.035em]
                 max-w-[12em]
                 font-[family-name:var(--font-display)]
@@ -237,13 +255,15 @@ export default function Hero() {
               {svc.description}
             </p>
 
-            {/* CTA */}
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-3">
             <button
               key={`cta-${svc.id}`}
               style={swap(280)}
               className="
                 inline-flex items-center gap-3
                 pl-[10px] pr-6 py-[10px]
+                [@media(max-height:500px)]:py-[6px]
                 rounded-full
                 font-[600] text-[15px] leading-none tracking-[0.02em]
                 font-[family-name:var(--font-display)]
@@ -278,6 +298,44 @@ export default function Hero() {
               </span>
               {svc.cta.label}
             </button>
+
+            {/* The audit is real-estate only */}
+            {svc.id === 'real-estate' && (
+            <a
+              key={`audit-${svc.id}`}
+              href="/build-package"
+              style={swap(330)}
+              onClick={(e) => {
+                e.preventDefault()
+                go('/build-package')
+              }}
+              className="
+                hero-audit
+                inline-flex items-center gap-3
+                pl-6 pr-[10px] py-[10px]
+                [@media(max-height:500px)]:py-[6px]
+                rounded-full
+                font-[800] text-[15px] leading-none tracking-[0.02em]
+                font-[family-name:var(--font-display)]
+              "
+            >
+              <span className="hero-audit__sheen" aria-hidden="true" />
+              <span className="relative">Get Your Audit Report</span>
+              <span
+                className="
+                  relative
+                  grid place-items-center
+                  w-9 h-9
+                  rounded-full
+                  bg-[var(--navy)] text-[var(--accent)]
+                  shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]
+                "
+              >
+                <ArrowRight size={16} strokeWidth={2.6} className="hero-audit__icon" aria-hidden="true" />
+              </span>
+            </a>
+            )}
+            </div>
           </div>
         </div>
 
@@ -293,6 +351,9 @@ export default function Hero() {
             flex flex-col items-center gap-2
 
             text-[var(--muted)]
+
+            [@media(max-height:600px)_and_(orientation:portrait)]:hidden
+            [@media(max-height:500px)]:hidden
           "
           onClick={() => scrollToTarget('#process')}
           aria-label="Scroll down"

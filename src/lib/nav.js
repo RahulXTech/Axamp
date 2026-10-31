@@ -6,6 +6,7 @@ import { industryFromPath, useIndustry } from './industry'
 // Top-level pages, in navbar order
 export const pages = [
   { to: '/', label: 'Home' },
+  { to: '/build-package', label: 'Get Audit' },
   { to: '/services', label: 'Services' },
   { to: '/packages', label: 'Packages' },
   { to: '/about', label: 'About' },
@@ -36,5 +37,5 @@ export function useGo() {
   )
 }
 
-// The navbar treats every industry page as "Home"
-export const pageOf = (pathname) => (industryFromPath(pathname) ? '/' : pathname)
+// The navbar treats every industry page as "Home", and the lead loss report as "Get Audit"
+export const pageOf = (pathname) => (industryFromPath(pathname) ? '/' : pathname.startsWith('/build-package') ? '/build-package' : pathname)

@@ -13,6 +13,8 @@ export const site = {
   // WhatsApp number in international format, digits only
   whatsapp: '918826088011',
   whatsappMessage: "Hi AXAMP, I'd like to book a call about my next project.",
+  // Live demo of the WhatsApp lead flow (Home → lead engine, Packages → Performance card)
+  whatsappDemo: 'https://whatsapp-demo-eta.vercel.app/',
 
   address: {
     lines: ['A-Tower, 8th Floor, Spectrum @Metro Mall', 'Sector 75, Noida, Gautam Buddh Nagar', 'Uttar Pradesh, India — 201301'],

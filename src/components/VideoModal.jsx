@@ -73,7 +73,7 @@ function ModalBody({ reel, close }) {
         <img src={reel.poster} alt={reel.caption} className="absolute inset-0 h-full w-full object-contain" />
       </div>
     )
-  } else if (reel.type === 'youtube') {
+  } else if (reel.type === 'youtube' && !reel.video) {
     player = (
       <iframe
         className="absolute inset-0 w-full h-full border-0"
@@ -111,7 +111,8 @@ function ModalBody({ reel, close }) {
     )
   }
 
-  const isWide = reel.type === 'youtube'
+  // Self-hosted YouTube Shorts are vertical: they use the post view
+  const isWide = reel.type === 'youtube' && !reel.video
   const glow = reel.warm
     ? 'border-[rgba(255,122,80,0.40)] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.80),0_0_80px_-20px_rgba(255,122,80,0.40)]'
     : 'border-[rgba(83,247,251,0.35)] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.80),0_0_80px_-20px_rgba(83,247,251,0.35)]'
@@ -238,6 +239,7 @@ function ModalBody({ reel, close }) {
 function PostPanel({ reel }) {
   const [shared, setShared] = useState(false)
   const hasPost = reel.type === 'instagram'
+  const isYt = reel.type === 'youtube'
 
   const share = async () => {
     try {
@@ -256,7 +258,7 @@ function PostPanel({ reel }) {
   // Client reels carry their own account + public counts; ours fall back to AXAMP
   const handle = reel.handle || igHandle
   const name = reel.name || site.legalName
-  const profile = reel.handle ? `https://www.instagram.com/${reel.handle}/` : site.instagram
+  const profile = reel.profile ?? (reel.handle ? `https://www.instagram.com/${reel.handle}/` : site.instagram)
   const fmt = (n) => (n >= 1e4 ? `${+(n / 1e3).toFixed(1)}K` : n.toLocaleString('en-IN'))
   const counts = [
     reel.views >= 100 && `${fmt(reel.views)} views`,
@@ -353,7 +355,7 @@ function PostPanel({ reel }) {
         )}
 
         <p aria-live="polite" className="px-2 pt-1 text-[12px] text-[var(--faint)]">
-          {shared ? 'Link copied' : hasPost ? 'Likes & comments happen on Instagram' : 'An official AXAMP video'}
+          {shared ? 'Link copied' : hasPost ? 'Likes & comments happen on Instagram' : isYt ? 'Originally posted on YouTube' : 'An official AXAMP video'}
         </p>
 
         <a
@@ -369,8 +371,8 @@ function PostPanel({ reel }) {
             hover:border-[rgba(255,122,80,0.7)] hover:bg-white/[0.07] hover:shadow-[0_0_24px_-6px_rgba(255,122,80,0.6)]
           "
         >
-          <InstagramIcon size={17} />
-          {hasPost ? 'View post on Instagram' : 'More on our Instagram'}
+          {isYt ? <YouTubeIcon size={17} /> : <InstagramIcon size={17} />}
+          {hasPost ? 'View post on Instagram' : isYt ? 'Watch on YouTube' : 'More on our Instagram'}
         </a>
       </div>
     </aside>

@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Building2, GraduationCap, UserRound } from 'lucide-react'
+import { Building2, ClipboardCheck, GraduationCap, UserRound } from 'lucide-react'
 import { useIndustry } from '../lib/industry'
+import { useGo } from '../lib/nav'
 import { scrollToTarget } from '../lib/scroll'
 import { services } from '../data/services'
 import { industryWhatsappMessage, whatsappLink } from '../data/site'
@@ -10,13 +11,15 @@ const serviceIcons = { building: Building2, user: UserRound, graduation: Graduat
 
 /*
  * Floating industry switcher (home page): the hero's Real Estate /
- * Hospital / University choice, always one tap away, plus WhatsApp.
+ * Hospital / University choice, always one tap away, plus Get Audit
+ * (Real Estate — the audit is real-estate only) or WhatsApp (the rest).
  * Bottom-centre on desktop, a full-width thumb bar on phones. Shows
  * once the hero has scrolled away (it has its own switcher) and hides
- * at the contact section (it has its own WhatsApp buttons).
+ * at the contact section.
  */
 export default function IndustryDock() {
   const { industry, setIndustry } = useIndustry()
+  const go = useGo()
   const active = Math.max(0, services.findIndex((s) => s.id === industry))
   const svc = services[active]
   const visible = useDockVisible()
@@ -132,7 +135,35 @@ export default function IndustryDock() {
 
       <span aria-hidden="true" className="h-8 w-px bg-white/10 max-[640px]:hidden" />
 
+      {svc.id === 'real-estate' ? (
       <a
+        key="audit"
+        href="/build-package"
+        onClick={(e) => {
+          e.preventDefault()
+          go('/build-package')
+        }}
+        aria-label="Get your audit report"
+        className="
+          hero-audit
+          inline-flex shrink-0 items-center gap-2 rounded-full
+          py-1.5 pl-1.5 pr-4
+          font-[family-name:var(--font-display)] text-[13.5px] font-[800] leading-none
+
+          max-[640px]:h-[60px] max-[640px]:w-[56px] max-[640px]:flex-col max-[640px]:justify-center max-[640px]:gap-1
+          max-[640px]:rounded-[18px] max-[640px]:p-0 max-[640px]:text-[10px]
+        "
+      >
+        <span className="hero-audit__sheen" aria-hidden="true" />
+        <span className="relative grid h-8 w-8 place-items-center rounded-full bg-[var(--navy)] text-[var(--accent)] max-[640px]:h-6 max-[640px]:w-6">
+          <ClipboardCheck size={16} strokeWidth={2.2} aria-hidden="true" />
+        </span>
+        <span className="relative max-[640px]:hidden">Get Audit</span>
+        <span className="relative hidden max-[640px]:inline">Audit</span>
+      </a>
+      ) : (
+      <a
+        key="whatsapp"
         href={whatsappLink(industryWhatsappMessage[svc.id])}
         target="_blank"
         rel="noopener noreferrer"
@@ -155,6 +186,7 @@ export default function IndustryDock() {
         <span className="max-[640px]:hidden">WhatsApp</span>
         <span className="hidden max-[640px]:inline">Chat</span>
       </a>
+      )}
     </div>
   )
 }

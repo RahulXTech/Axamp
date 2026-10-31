@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { useIndustry } from '../lib/industry'
 import { initSlides } from '../lib/slide'
 import Hero from '../components/Hero'
+import LeadLeak from '../components/LeadLeak'
 import ProcessStrip from '../components/ProcessStrip'
 import AnswerFirst from '../components/AnswerFirst'
 import Pillar from '../components/Pillar'
@@ -29,6 +30,8 @@ function IndustryProof() {
 
   return (
     <div ref={ref} key={config.key} data-slide-root>
+      {/* Where a realtor's 100 leads go — real estate only */}
+      {config.key === 'real-estate' && <LeadLeak />}
       <ProcessStrip pillars={pillars} eyebrow={config.stripEyebrow} title={config.stripTitle} />
       <AnswerFirst pillars={pillars} />
       {pillars.map((p, i) => (
@@ -43,7 +46,11 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <IndustryProof />
+      {/* The Hospital coverflow loads on demand: the whole block waits for it,
+          so its slides and pins are wired up in one go (the hero stays on screen) */}
+      <Suspense fallback={<div className="min-h-[100svh]" />}>
+        <IndustryProof />
+      </Suspense>
       <Performance />
       <LeadEngine />
       <Closing />
@@ -52,4 +59,3 @@ export default function Home() {
     </>
   )
 }
-

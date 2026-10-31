@@ -6,8 +6,11 @@ gsap.registerPlugin(ScrollTrigger)
 
 let lenis = null
 
+// Eased scrolling is motion too — with reduced motion on, the browser scrolls natively
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export function initSmoothScroll() {
-  if (lenis) return () => {}
+  if (lenis || reducedMotion()) return () => {}
   lenis = new Lenis({ duration: 1.15, smoothWheel: true })
   lenis.on('scroll', ScrollTrigger.update)
   const raf = (time) => lenis.raf(time * 1000)
@@ -23,7 +26,7 @@ export function initSmoothScroll() {
 export function scrollToTarget(target) {
   if (typeof target === 'number') {
     if (lenis) lenis.scrollTo(target, { duration: 1.4 })
-    else window.scrollTo({ top: target, behavior: 'smooth' })
+    else window.scrollTo({ top: target, behavior: reducedMotion() ? 'auto' : 'smooth' })
     return
   }
   const el = typeof target === 'string' ? document.querySelector(target) : target
@@ -31,7 +34,7 @@ export function scrollToTarget(target) {
   // Re-measure first: right after a page change Lenis still clamps to the old page's height
   lenis?.resize()
   if (lenis) lenis.scrollTo(el, { offset: 0, duration: 1.6 })
-  else el.scrollIntoView({ behavior: 'smooth' })
+  else el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth' })
 }
 
 // Jump straight to the top — used when a new page mounts

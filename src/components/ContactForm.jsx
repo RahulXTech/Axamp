@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 
 import { budgets, contactMethods, industries, industryFromSwitcher, needs } from '../data/contact'
-import { site } from '../data/site'
+import { whatsappLink } from '../data/site'
 import { useIndustry } from '../lib/industry'
 import { scrollToTarget } from '../lib/scroll'
 import { WhatsAppIcon } from './icons'
@@ -61,8 +61,6 @@ function compose(v) {
   if (t(v.message)) lines.push('', `About the project: ${t(v.message)}`)
   return lines.join('\n')
 }
-
-const waLink = (text) => `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(text)}`
 
 // Emails the lead to AXAMP (api/contact.js); throws if it didn't go through
 async function sendLead(v) {
@@ -310,7 +308,7 @@ export default function ContactForm() {
         </p>
         <div className="mt-2 flex w-full flex-col items-center gap-3 min-[480px]:w-auto min-[480px]:flex-row">
           <a
-            href={waLink(sent)}
+            href={whatsappLink(sent)}
             target="_blank"
             rel="noreferrer"
             className="inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-full bg-[#25d366] px-7 font-[family-name:var(--font-display)] text-[15px] font-semibold text-[#062b14] shadow-[0_0_30px_-8px_rgba(37,211,102,0.8)] transition-transform duration-300 hover:-translate-y-px min-[480px]:w-auto"
@@ -660,7 +658,7 @@ export default function ContactForm() {
               We couldn’t send your details just now.
             </p>
             <a
-              href={waLink(sendError)}
+              href={whatsappLink(sendError)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex h-11 items-center gap-2 rounded-full bg-[#25d366] px-5 font-[family-name:var(--font-display)] text-[14px] font-semibold text-[#062b14]"
@@ -673,7 +671,7 @@ export default function ContactForm() {
           <p className="text-center text-[13px] leading-[1.5] text-[var(--faint)]">
             Your details go straight to the AXAMP team.{' '}
             <a
-              href={waLink(compose(v))}
+              href={whatsappLink(compose(v))}
               target="_blank"
               rel="noreferrer"
               className="font-semibold text-white/80 underline decoration-white/30 underline-offset-4 transition-colors hover:text-[var(--cyan)]"

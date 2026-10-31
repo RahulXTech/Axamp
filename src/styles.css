@@ -32,6 +32,7 @@
 
   --font-display: 'Sora', system-ui, sans-serif;
   --font-ui:      'Inter', system-ui, sans-serif;
+  --font-serif:   'Instrument Serif', Georgia, serif;
 
   --gutter: clamp(16px, 6vw, 96px);
 
@@ -271,6 +272,197 @@
   .svc-track::before { animation: none; }
 }
 
+/* ── Hero "Get Your Audit Report" CTA ────────────────────────── */
+/* Flowing accent fill, an orbiting light on the rim, a periodic
+ * sheen, a breathing glow ring and an arrow that keeps nudging.
+ * Animations live on children/pseudos so the inline `swap`
+ * entrance on the button itself isn't overridden. */
+
+.hero-audit {
+  position: relative;
+  isolation: isolate;
+  color: var(--navy);
+  background: linear-gradient(
+    110deg,
+    var(--accent) 0%,
+    #f2ffff 25%,
+    var(--accent) 50%,
+    #f2ffff 75%,
+    var(--accent) 100%
+  );
+  background-size: 300% 100%;
+  box-shadow:
+    0 0 36px -6px rgba(var(--accent-rgb), 0.8),
+    0 14px 30px -14px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 0 rgba(11, 18, 41, 0.18);
+  transition:
+    box-shadow 0.4s var(--ease),
+    transform 0.4s var(--ease),
+    background-position 1.2s var(--ease);
+}
+
+.hero-audit:hover {
+  transform: translateY(-3px) scale(1.03);
+  background-position: 100% 0;
+  box-shadow:
+    0 0 60px -4px rgba(var(--accent-rgb), 1),
+    0 18px 36px -14px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 0 rgba(11, 18, 41, 0.18);
+}
+
+.hero-audit:active { transform: translateY(-1px) scale(0.98); }
+
+/* Orbiting light on the rim */
+.hero-audit::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0deg,
+    #fff 40deg,
+    rgba(var(--accent-rgb), 0.9) 80deg,
+    transparent 130deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: border-orbit 3.2s linear infinite;
+  pointer-events: none;
+}
+
+/* Breathing glow ring */
+.hero-audit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  border: 2px solid rgba(var(--accent-rgb), 0.7);
+  animation: hero-audit-ring 2.4s var(--ease) infinite;
+  pointer-events: none;
+}
+
+@keyframes hero-audit-ring {
+  from { transform: scale(1); opacity: 0.85; }
+  to   { transform: scale(1.18, 1.5); opacity: 0; }
+}
+
+/* Sheen sweep (clipped to the pill) */
+.hero-audit__sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-audit__sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  transform: skewX(-20deg);
+  animation: svc-sheen 3.6s var(--ease) 1s infinite;
+}
+
+.hero-audit__icon {
+  transition: transform 0.4s var(--ease);
+  animation: hero-audit-nudge 1.6s var(--ease) infinite;
+}
+
+.hero-audit:hover .hero-audit__icon {
+  animation: none;
+  transform: translateX(3px) rotate(-45deg);
+}
+
+@keyframes hero-audit-nudge {
+  0%, 60%, 100% { transform: translateX(0); }
+  30%           { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-audit::before,
+  .hero-audit::after,
+  .hero-audit__sheen::after,
+  .hero-audit__icon { animation: none; }
+}
+
+/* ── Lead engine "Watch the live WhatsApp demo" panel ────────── */
+/* Sits over the proof videos, so it needs to win against them:
+ * an orbiting light on the rim, a periodic sheen and a nudging
+ * arrow. No transform animations on the element itself — GSAP
+ * drives its entrance (data-anim="proof-demo"). */
+
+.proof-demo {
+  position: relative;
+  isolation: isolate;
+}
+
+.proof-demo::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0deg,
+    #e9fff1 40deg,
+    #25d366 85deg,
+    transparent 140deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: border-orbit 3.6s linear infinite;
+  pointer-events: none;
+}
+
+.proof-demo__sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.proof-demo__sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 35%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  transform: skewX(-20deg);
+  animation: svc-sheen 4.2s var(--ease) 1.2s infinite;
+}
+
+.proof-demo__icon {
+  animation: hero-audit-nudge 1.6s var(--ease) infinite;
+}
+
+.proof-demo:hover .proof-demo__icon {
+  animation: none;
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proof-demo::before,
+  .proof-demo__sheen::after,
+  .proof-demo__icon { animation: none; }
+}
+
 
 
 /* ── Reel ring (3D carousel, driven by GSAP in Pillar.jsx) ──── */
@@ -316,6 +508,18 @@
 .reel-ring .glass,
 .reel-orbit [data-orbit-card] .glass {
   background: var(--navy-2);
+}
+
+/* Same for the Hospital coverflow (PillarShowcase) on phones / tablets:
+   six coverflows × 8+ slides put ~110 blurred chips on the page (up to
+   ~25 on screen), each its own offscreen surface at 3× — enough for iOS
+   Safari to run out of memory and reload the tab. The chips already sit
+   on dark fills, so they read the same without the blur. */
+@media (pointer: coarse) {
+  .perf-swiper [class*='backdrop-blur'] {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* ── Closing CTA: gradient border that orbits the card ───────── */
@@ -388,7 +592,7 @@
   display: none;
 }
 
-/* Side cards in the Meta coverflow sit back in the dark */
+/* Side cards in the pillar coverflow sit back in the dark */
 .perf-swiper {
   overflow: visible;
 }
@@ -408,6 +612,29 @@
 .perf-ring--rev {
   animation-duration: 28s;
   animation-direction: reverse;
+}
+
+/* Meta phone: story bar timing each reel, screen swap, "now playing" bars */
+@keyframes perf-story {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.perf-story {
+  transform-origin: left;
+  animation-name: perf-story;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes perf-swap {
+  from { opacity: 0; transform: scale(1.06); filter: blur(8px); }
+}
+@keyframes perf-eq {
+  0%, 100% { height: 30%; }
+  50%      { height: 100%; }
+}
+.perf-eq {
+  height: 30%;
+  animation: perf-eq 0.9s ease-in-out infinite;
 }
 
 /* Result badges pop in, then bob gently */
@@ -463,6 +690,7 @@
 @media (prefers-reduced-motion: reduce) {
   .hs-ecg,
   .perf-ring,
+  .perf-eq,
   .perf-float,
   .perf-like,
   .perf-draw { animation: none; }
@@ -473,6 +701,7 @@
 @media (min-width: 1024px) and (min-height: 700px) {
   .perf-pin {
     height: 100vh;
+    height: 100svh; /* iPad Safari: 100vh runs under the toolbar */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -605,6 +834,46 @@
   60%, 100% { background-position: 0% 0; }
 }
 
+/* Report: "Get the solution to this loss" — a slow glow pulse, a light
+   sweeping across now and then, and the arrow nudging forward */
+.sol-cta {
+  animation: sol-glow 2.4s ease-in-out infinite;
+}
+.sol-cta::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+  animation: sol-sweep 3.6s var(--ease) 1s infinite;
+}
+.sol-cta-arrow {
+  animation: sol-nudge 1.8s ease-in-out infinite;
+}
+
+@keyframes sol-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(83, 247, 251, 0.55), 0 10px 30px -10px rgba(83, 247, 251, 0.8); }
+  50%      { box-shadow: 0 0 0 7px rgba(83, 247, 251, 0), 0 14px 38px -8px rgba(83, 247, 251, 1); }
+}
+@keyframes sol-sweep {
+  0%        { left: -60%; }
+  35%, 100% { left: 130%; }
+}
+@keyframes sol-nudge {
+  0%, 60%, 100% { transform: translateX(0); }
+  30%           { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sol-cta,
+  .sol-cta-arrow { animation: none; box-shadow: 0 10px 30px -10px rgba(83, 247, 251, 0.8); }
+  .sol-cta::after { display: none; }
+}
+
 /* Ticker: each new question rises in, then gets struck through */
 .af-q {
   animation: af-rise 0.6s var(--ease) backwards;
@@ -688,6 +957,208 @@
   .cf-step, .cf-shake, .cf-ring { animation: none; }
 }
 
+/* ── Package builder (pages/BuildPackage.jsx) ───────────────── */
+
+/* Option cards rise in one after another (--i = card index) */
+.bp-card { animation: rise 0.5s var(--ease) calc(var(--i, 0) * 45ms) both; }
+
+/* Tick pops in on the picked card */
+.bp-tick { animation: pop 0.35s var(--ease) both; }
+
+/* Leads dropping out at this step pulse amber in the dot grid */
+.bp-drop { animation: bp-drop 1.6s ease-in-out infinite; }
+@keyframes bp-drop {
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-card, .bp-tick, .bp-drop { animation: none; }
+}
+
+/* ── Lead loss report (pages/LeadReport.jsx) ─────────────────── */
+
+/* The red loss rows blink three times like an alert once they're on screen
+   (each row starts a little after the one above — see --alert-delay) */
+.loss-alert { animation: loss-blink 0.45s ease-in-out var(--alert-delay, 0s) 6 alternate both; }
+@keyframes loss-blink {
+  from { border-color: rgba(229, 72, 77, 0.55); box-shadow: 0 12px 40px -16px rgba(229, 72, 77, 0.7); }
+  to {
+    border-color: #ff6b70;
+    background-color: rgba(229, 72, 77, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 107, 112, 0.35), 0 0 40px -2px rgba(229, 72, 77, 0.95);
+  }
+}
+
+/* …and the ↓ icon keeps sending out an alert ring */
+.loss-beacon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid #ff6b70;
+  animation: loss-ping 1.6s ease-out infinite;
+}
+@keyframes loss-ping {
+  from { transform: scale(1); opacity: 0.9; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+
+/* The warning signs on the red rows blink on their own, all the time:
+   shown for half a second, hidden for half a second */
+.warn-blink {
+  filter: drop-shadow(0 0 8px rgba(255, 59, 59, 0.95));
+  animation: warn-blink 1s steps(1, end) infinite;
+}
+@keyframes warn-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* "Find the reason behind this loss": a red button that glows in and out, with a
+   light sweeping across it every few seconds, and its ↑ arrow bobbing upward */
+.reason-btn {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 12px 30px -10px rgba(229, 72, 77, 0.85);
+  animation: reason-glow 2.4s ease-in-out infinite;
+}
+@keyframes reason-glow {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 12px 30px -10px rgba(229, 72, 77, 0.85); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 0 5px rgba(255, 107, 112, 0.2), 0 16px 44px -8px rgba(229, 72, 77, 1); }
+}
+.reason-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -35%;
+  width: 28%;
+  transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: reason-shine 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes reason-shine {
+  0% { left: -35%; }
+  55%, 100% { left: 130%; }
+}
+.reason-bob { animation: reason-bob 1.6s ease-in-out infinite; }
+@keyframes reason-bob {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(3px); }
+}
+/* the same bob, pointing up — for the ↑ arrow on the reason button */
+.reason-bob-up { animation: reason-bob-up 1.6s ease-in-out infinite; }
+@keyframes reason-bob-up {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loss-alert, .loss-beacon::after, .warn-blink, .reason-btn, .reason-btn::before, .reason-bob, .reason-bob-up { animation: none; }
+}
+
+/* ── Package cards (pages/Packages.jsx) ─────────────────────── */
+
+/* Gold ring running round the Top 1% card (the 3D tilt is Framer Motion) */
+.pkg-ring { animation: pkg-ring 8s linear infinite; }
+@keyframes pkg-ring { to { rotate: 360deg; } }
+
+/* Golden rings behind the Top 1% card, slowly turning and breathing */
+.pkg-swirl {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: pkg-swirl 18s ease-in-out infinite alternate;
+}
+@keyframes pkg-swirl {
+  from { transform: rotate(-8deg) scale(0.96); opacity: 0.75; }
+  to   { transform: rotate(10deg) scale(1.04); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pkg-ring, .pkg-swirl { animation: none; }
+}
+
+/* Paused while the package drawer covers the page: the swirl is SVG, so each
+   frame was repainted and re-layered on the main thread under the drawer,
+   making it janky to scroll. They pick up where they left off on close. */
+html.is-locked .pkg-ring,
+html.is-locked .pkg-swirl { animation-play-state: paused; }
+
+/* Liquid glass. No backdrop-filter: it breaks inside the 3D tilt and is costly
+   on iPhone, so the frost is painted instead — a milky fill, a curved sheen from
+   the top-left, a rim lit at the corners and a glow in the accent (--lg).
+   The element must already be positioned. */
+.lg {
+  --lg: 255, 255, 255;
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(255, 255, 255, 0.17), transparent 55%),
+    radial-gradient(90% 55% at 100% 100%, rgba(var(--lg), 0.1), transparent 70%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035) 45%, rgba(255, 255, 255, 0.07));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 28px rgba(255, 255, 255, 0.05),
+    0 30px 60px -32px rgba(0, 0, 0, 0.9),
+    0 22px 50px -34px rgba(var(--lg), 0.5);
+}
+
+/* Rim: bright at the top-left and bottom-right, clear between */
+.lg::before,
+.lg-ghost::before,
+.lg-chip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.03) 60%, rgba(255, 255, 255, 0.32));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Small glass well for icons, ticks and the "Best for" field */
+.lg-chip {
+  --lg: 255, 255, 255;
+  background:
+    radial-gradient(100% 70% at 30% 0%, rgba(255, 255, 255, 0.22), transparent 60%),
+    rgba(var(--lg), 0.13);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -6px 14px -8px rgba(var(--lg), 0.5),
+    0 8px 18px -10px rgba(var(--lg), 0.6);
+}
+
+/* Glossy pill filled with the accent: a highlight across its top half */
+.lg-btn {
+  --lg: 255, 255, 255;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.08) 50%, transparent 51%),
+    var(--lg-fill, rgb(var(--lg)));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.16),
+    0 14px 30px -12px rgba(var(--lg), 0.85);
+  transition: filter 0.3s, transform 0.3s var(--ease);
+}
+.lg-btn:hover { filter: brightness(1.08) saturate(1.1); transform: translateY(-1px); }
+
+/* Clear frosted pill */
+.lg-ghost {
+  background:
+    radial-gradient(100% 80% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 70%),
+    rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.9);
+  transition: background-color 0.3s, transform 0.3s var(--ease);
+}
+.lg-ghost:hover { background-color: rgba(255, 255, 255, 0.12); transform: translateY(-1px); }
+
+/* Keeps only a 1.5px band round the edge, for the Top 1% card's moving ring */
+.pkg-rim {
+  padding: 1.5px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
 /* ── Services catalog (components/ServiceCatalog.jsx) ────────── */
 
 /* New line in the plan */
@@ -737,4 +1208,141 @@
 
 @media (prefers-reduced-motion: reduce) {
   .partner-track { animation-duration: 120s; }
+}
+
+/* ── Lead leak (components/LeadLeak.jsx) ─────────────────────── */
+
+/* "99%" in a red → amber gradient with a light running through it */
+.ll-stat {
+  background: linear-gradient(100deg, #ff6b70 0%, var(--amber) 35%, #ffd2c2 50%, var(--amber) 65%, #ff6b70 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  animation: af-shine 4.5s var(--ease) infinite;
+}
+
+/* One lead. Its state is set by the stage being played */
+.ll-dot {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  transition:
+    background-color 0.5s var(--ease),
+    transform 0.6s var(--ease),
+    opacity 0.6s var(--ease),
+    box-shadow 0.5s var(--ease);
+}
+.ll-dot.is-live { background: rgba(var(--cyan-rgb), 0.55); }
+.ll-dot.is-gone { background: rgba(255, 255, 255, 0.07); transform: scale(0.55); }
+.ll-dot.is-leak {
+  background: #ff6b70;
+  box-shadow: 0 0 10px rgba(255, 107, 112, 0.85);
+  animation: ll-leak 0.9s ease-in-out var(--d, 0s) both;
+}
+.ll-dot.is-win {
+  background: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(var(--cyan-rgb), 0.25), 0 0 16px rgba(var(--cyan-rgb), 0.9);
+  transform: scale(1.2);
+  animation: ll-win 1.6s ease-in-out infinite;
+}
+.ll-dot.static-dot { animation: none; transform: none; }
+
+@keyframes ll-leak {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.35); }
+  50%  { transform: scale(0.9); }
+  75%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes ll-win {
+  50% { transform: scale(1.4); box-shadow: 0 0 0 5px rgba(var(--cyan-rgb), 0.12), 0 0 22px rgba(var(--cyan-rgb), 1); }
+}
+
+/* The −30 chip pops in each time the stage changes */
+.ll-chip { animation: pop 0.45s var(--ease) both; }
+
+/* Emoji of the stage that's playing gives a little shake */
+.ll-wiggle { animation: ll-wiggle 1.4s ease-in-out infinite; }
+@keyframes ll-wiggle {
+  0%, 60%, 100% { transform: rotate(0); }
+  10%, 30%      { transform: rotate(-12deg) scale(1.08); }
+  20%, 40%      { transform: rotate(12deg) scale(1.08); }
+}
+
+/* "lead-related problems." — italic serif in a warm gradient */
+.ll-em {
+  background: linear-gradient(95deg, #ff6b70 0%, #ff8f6b 45%, #ffc9a8 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  padding-right: 0.08em; /* keeps the italic's last glyph from being clipped */
+}
+
+/* The 99/100 meter on the stat card fills once the section is on screen */
+.ll-meter {
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 1.6s var(--ease) 0.25s;
+}
+.ll-meter.is-drawn { transform: scaleX(1); }
+
+/* "REALTORS" tag on the stat card: tilted like a stamp, with a light sweeping across */
+.ll-tag {
+  position: relative;
+  overflow: hidden;
+  transform: rotate(-4deg);
+}
+.ll-tag::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: ll-tag-sheen 4s var(--ease) 1.2s infinite;
+}
+@keyframes ll-tag-sheen {
+  0%       { transform: translateX(-120%); }
+  35%, 100% { transform: translateX(120%); }
+}
+
+/* Warning badge before "struggle": a slow pulse ring */
+.ll-warn { animation: ll-warn 2.4s ease-out infinite; }
+@keyframes ll-warn {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 107, 112, 0.45), 0 0 20px rgba(255, 107, 112, 0.35); }
+  70%  { box-shadow: 0 0 0 12px rgba(255, 107, 112, 0), 0 0 20px rgba(255, 107, 112, 0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 107, 112, 0), 0 0 20px rgba(255, 107, 112, 0.35); }
+}
+
+/* Brush underline under it, drawn in once the section is on screen */
+.ll-brush path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.ll-brush.is-drawn path {
+  animation: ll-draw 1.1s var(--ease) 0.35s forwards;
+}
+@keyframes ll-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Panel timer: fills over the time left until the next stage */
+.ll-timer {
+  transform-origin: left;
+  animation: ll-timer var(--ms, 3s) linear both;
+}
+@keyframes ll-timer {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* "Live" dot */
+.ll-live { animation: warn-blink 1.2s steps(1, end) infinite; box-shadow: 0 0 8px #ff6b70; }
+
+/* The stage playback (dots, timer, stage card) always runs; only the
+ * decorative loops stop for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ll-stat, .ll-wiggle, .ll-live, .ll-brush.is-drawn path, .ll-tag::after, .ll-warn { animation: none; transition: none; }
+  .ll-brush path { stroke-dashoffset: 0; }
+  .ll-meter { transform: none; transition: none; }
 }

@@ -67,7 +67,12 @@ export const universityPillars = [
     tone: 'warm',
     objection: 'What do students who graduated say?',
     answer: 'Answered by passed-out students.',
-    reels: [reel('DZVQO56Suc7'), reel('DYECqNNySkB')], // alumna founder · meet the students
+    // Official video first — the pillar card plays the first reel inline
+    reels: [
+      { ig: 'https://www.instagram.com/p/DYSC2icuM-L/', poster: '/posters/DYSC2icuM-L.jpg', caption: 'J.N.N Institute — different dreams, one destination: students on why they chose J.N.N' },
+      reel('DZVQO56Suc7'), // alumna founder
+      reel('DYECqNNySkB'), // meet the students
+    ],
   },
   {
     id: 'placements',
@@ -76,7 +81,14 @@ export const universityPillars = [
     icon: 'briefcase',
     objection: 'Will I get a good job after this?',
     answer: 'Answered with real packages and recruiters.',
-    reels: [reel('DFLiNfpTp00'), reel('DZE28P1uce2')], // career fest · placements Q&A
+    // Official videos first — the pillar card plays the first reel inline
+    reels: [
+      { ig: 'https://www.instagram.com/p/DWJP7ykiD3B/', poster: '/posters/DWJP7ykiD3B.jpg', caption: 'GIMS — achievers aren’t born, they’re built: students mentored all the way to placement' },
+      { ig: 'https://www.instagram.com/p/DVf15FlDo9X/', poster: '/posters/DVf15FlDo9X.jpg', caption: 'GL Bajaj IMR — 500+ recruiters, early offers and a highest CTC of ₹19 LPA' },
+      { ig: 'https://www.instagram.com/p/Db0Ht8cvvpw/', poster: '/posters/Db0Ht8cvvpw.jpg', caption: 'Amity University Noida — TCS on campus: students on their first placement drive' },
+      reel('DFLiNfpTp00'), // career fest
+      reel('DZE28P1uce2'), // placements Q&A
+    ],
   },
   {
     id: 'podcast',
@@ -85,6 +97,20 @@ export const universityPillars = [
     icon: 'podcast',
     objection: 'How do I get in — and can I afford it?',
     answer: 'Answered on a podcast: admissions, achievements, scholarships.',
-    reels: [reel('DZE28P1uce2'), reel('DYECqNNySkB')], // Open House admissions
+    // Official videos first — the pillar card plays the first reel inline
+    reels: [
+      { ig: 'https://www.instagram.com/p/DdgNvNaPjsd/', poster: '/posters/DdgNvNaPjsd.jpg', caption: 'Amity University Noida — “After Amity”, a podcast where alumni talk about life after campus' },
+      {
+        youtube: 'DtiZFK0Z-kM',
+        video: '/videos/DtiZFK0Z-kM.mp4',
+        poster: '/posters/DtiZFK0Z-kM.jpg',
+        caption: 'The importance of college — a podcast conversation on why the campus years matter',
+        handle: 'sunoindia_podcast',
+        name: 'SUNOINDIA PODCAST · YouTube',
+        profile: 'https://www.youtube.com/@sunoindia_podcast',
+      },
+      reel('DZE28P1uce2'), // Open House admissions
+      reel('DYECqNNySkB'),
+    ],
   },
 ]

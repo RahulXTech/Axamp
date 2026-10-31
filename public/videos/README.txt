@@ -11,31 +11,27 @@ except Project Details, Site Visit and Informative shows all eight, its most rel
   aditya-rosemont.mp4          Rosemont Residency sales visit
   gurgaon-vs-noida.mp4         Gurugram vs Noida explainer
 
-Project Details pillar only — AXAMP's official edits (7 Oct 2026),
-listed in pillar order (first is the cover):
+Project Details pillar (16 Oct 2026), in pillar order (first is the cover):
 
-  pd-mdb-london-square.mp4     MDB London Square — build, interiors, offers
-  pd-bptp-skynest.mp4          BPTP Skynest, Sector 80 Faridabad
-  pd-aditya-rosemont.mp4       Rosemont Residency — 3 BHK interiors
-  pd-royal-green-county.mp4    Royal Green County — gate, avenue, sales gallery
-  pd-tonk-road-township.mp4    Tonk Road township — Phase 2 drone
-  pd-jda-rera-plots.mp4        JDA & RERA approved plots — drone
-  pd-society-house-tour.mp4    Society house tour
-  pd-society-patta-plot.mp4    266.66 gaj society patta plot
-  pd-township-registries.mp4   High-rise township — registries
-  pd-gurgaon-vs-noida.mp4      Gurugram vs Noida explainer (new edit)
+  Da0tRfPveuZ.mp4             Wave One Club — hidden gem of Noida
+  DbeAL9po0pj.mp4             Wave One Club — hidden on the 15th floor
+  Da_AzVkvlJZ.mp4             Wave One Club — hidden gem, walked through
+  DdUXRByzY2p.mp4             Wave One Club — hidden floor
+  DeH3iS-zxSh.mp4             Wave One Club — lifetime membership
+  Dc_xg4oySsD.mp4             Wave One Mall — aerial
+  pd-society-house-tour.mp4   Society house tour
+  pd-society-patta-plot.mp4   266.66 gaj society patta plot
 
 Site Visit pillar only — AXAMP's official edits (7 Oct 2026), in pillar order:
 
-  sv-vvip-yamuna.mp4             VVIP Yamuna — sales gallery visit
-  sv-red-carpet-sample-flat.mp4  Red-carpet sample flat visit
-  sv-sector-66-site.mp4          Sector 66 — 4.5 acres on site
   sv-max-estate-128.mp4          Max Estate 128, Noida — hard-hat visit
-  sv-sample-flat-walkthrough.mp4 Sample flat walkthrough
-  sv-group-108-grandthum.mp4     Group 108 Grandthum — lobby and atrium
+  sv-sector-66-site.mp4          Sector 66 — 4.5 acres on site
   sv-dlf-phase-1-floor.mp4       DLF Phase 1 builder floor
   sv-biggest-family-house.mp4    The biggest family house
+  sv-sample-flat-walkthrough.mp4 Sample flat walkthrough
   sv-bollywood-style-floor.mp4   Bollywood-style builder floor (360p source)
+  sv-red-carpet-sample-flat.mp4  Red-carpet sample flat visit
+  (+ in-mdb-london-square.mp4, shared with the Informative pillar)
 
 Informative pillar only — AXAMP's official edits (7 Oct 2026), in pillar order:
 
@@ -81,3 +77,24 @@ University (IIT Delhi) reels — see src/data/university.js:
   DZVQO56Suc7.mp4   IITD Outreach — alumna founder story      (Alumni Reviews)
   DYECqNNySkB.mp4   IITD Outreach — Open Houses               (Alumni Reviews, Podcast)
   DZE28P1uce2.mp4   IITD Outreach — Open House 2026 (34 MB)   (Placements, Podcast)
+
+Real estate Feedback & Reviews testimonials (16 Oct 2026) — see the 'reviews'
+pillar in src/data/work.js, posters in /public/posters/<id>.jpg:
+  DdBq0i-Mx2F.mp4   Mateshwari Group — Janakpuri buyers, 2 years on
+  DaZyjYBxJp7.mp4   Viviana Westin, Vadodara — the Bajpai family
+  Dbxn5qxpdA9.mp4   KRE Arihant, Udaipur — the Chaudhary family
+  Dc02Sl6Iltn.mp4   Two brothers — joint-family home in Brampton
+  DcliMVixxPe.mp4   After 50+ homes viewed — client testimonial
+  DcvXQgwCATY.mp4   Piramal Revanta, Mulund — homeowners
+  DT2u-E5DLkf.mp4   2BHK homeowner testimonial
+  DYgbl1kIKz_.mp4   Mrs. Manisha & Dr. Avnish Seth — home design
+
+Real estate Meta ad creatives (16 Oct 2026) — the "Real Estate Ads" tab of the
+Meta Ads panel, Real Estate view only. See metaAdGroup in src/data/performance.js,
+posters in /public/posters/<name>.webp:
+  ad-bptp-skynest.mp4             BPTP Skynest, Sector 80 Faridabad
+  ad-royal-green-county.mp4       Royal Green County, Kundli
+  ad-aditya-rosemont.mp4          Aditya Rosemont Residency
+  ad-mdb-london-square.mp4        MDB London Square — sales reward scheme
+  ad-ace-ultra-luxury.mp4         ACE Group — ultra luxury
+  ad-vvip-yamuna-site-visit.mp4   VVIP Yamuna — site visit

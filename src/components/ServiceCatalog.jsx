@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 
 import { catalog } from '../data/pricing'
-import { site } from '../data/site'
+import { whatsappLink } from '../data/site'
 import { lockScroll, scrollToTarget } from '../lib/scroll'
 import { FacebookIcon, InstagramIcon, LinkedInIcon, WhatsAppIcon, YouTubeIcon } from './icons'
 
@@ -76,8 +76,6 @@ function quoteMessage(p) {
   })
   return lines.join('\n').trim()
 }
-
-const waLink = (text) => `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(text)}`
 
 // Room for the fixed nav + the sticky category bar when jumping to a category
 const JUMP_OFFSET = 168
@@ -420,7 +418,7 @@ function PlanList({ plan, remove }) {
 function QuoteButton({ plan, className = '' }) {
   return (
     <a
-      href={waLink(quoteMessage(plan))}
+      href={whatsappLink(quoteMessage(plan))}
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center justify-center gap-2.5 rounded-full bg-[#25d366] font-[family-name:var(--font-display)] font-[700] text-[#062b14] shadow-[0_0_30px_-8px_rgba(37,211,102,0.85)] transition-transform duration-300 hover:-translate-y-0.5 ${className}`}

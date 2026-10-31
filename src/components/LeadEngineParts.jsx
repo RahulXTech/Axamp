@@ -1,5 +1,8 @@
 import { useLayoutEffect, useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { ArrowRight, Play, Sparkles } from 'lucide-react'
+
+import { site } from '../data/site'
+import { WhatsAppIcon } from './icons'
 
 /* ============================================================
    Shared pieces of the lead engine diagrams (LeadEngine.jsx):
@@ -7,6 +10,67 @@ import { Sparkles } from 'lucide-react'
 ============================================================ */
 
 export const pad = (n) => String(n).padStart(2, '0')
+
+/* Live WhatsApp lead-flow demo (real estate only), styled for the
+   proof-video card: a solid "now playing" panel with a big play button. It's the main action of the card, so it
+   sits clearly above the videos (near-opaque fill, orbiting rim light,
+   sheen) and grows with the room it gets: the anchor is a size container,
+   so the overlay on wide desktops gets the large size and phones the compact one. */
+export function ProofDemoButton({ className = '', ...rest }) {
+  return (
+    <a
+      href={site.whatsappDemo}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open the live WhatsApp lead-flow demo"
+      {...rest}
+      className={`
+        proof-demo group @container block rounded-[22px] text-left @lg:rounded-[26px]
+        border-[1.5px] border-[rgba(37,211,102,0.7)]
+        bg-[linear-gradient(120deg,rgba(8,46,30,0.97),rgba(8,14,34,0.97)_62%)] backdrop-blur-xl
+        shadow-[0_0_0_1px_rgba(255,255,255,0.05)_inset,0_28px_60px_-16px_rgba(0,0,0,0.95),0_0_60px_-10px_rgba(37,211,102,0.8)]
+        transition-[border-color,box-shadow,translate] duration-500 ease-[var(--ease)]
+        hover:-translate-y-1 hover:border-[#3ee07f] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08)_inset,0_32px_64px_-16px_rgba(0,0,0,0.95),0_0_80px_-6px_rgba(37,211,102,1)]
+        focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3ee07f]
+        ${className}
+      `}
+    >
+      <span aria-hidden="true" className="proof-demo__sheen" />
+
+      <span className="relative flex items-center gap-3.5 p-2.5 pr-4 @md:gap-4 @md:p-3 @md:pr-5 @lg:gap-5 @lg:p-3.5 @lg:pr-5">
+        {/* Play button with a pulsing ring */}
+        <span className="relative grid h-14 w-14 shrink-0 place-items-center @md:h-16 @md:w-16 @lg:h-[76px] @lg:w-[76px]">
+          <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-[#25d366] opacity-30" />
+          <span className="relative grid h-full w-full place-items-center rounded-full bg-[radial-gradient(circle_at_30%_25%,#5cf095,#25d366_55%,#14a84d)] text-[#062b14] shadow-[0_0_32px_-2px_rgba(37,211,102,1)] transition-transform duration-500 ease-[var(--ease)] group-hover:scale-105">
+            <Play fill="currentColor" strokeWidth={0} className="h-[22px] w-[22px] translate-x-[2px] @md:h-[26px] @md:w-[26px] @lg:h-[30px] @lg:w-[30px]" aria-hidden="true" />
+          </span>
+          {/* WhatsApp badge */}
+          <span className="absolute -bottom-0.5 -right-0.5 grid h-6 w-6 place-items-center rounded-full border-2 border-[#0b1a22] bg-white text-[#25d366] @lg:h-7 @lg:w-7">
+            <WhatsAppIcon size={13} />
+          </span>
+        </span>
+
+        <span className="flex min-w-0 flex-1 flex-col gap-1 @lg:gap-1.5">
+          <span className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#3ee07f] @lg:text-[12px]">
+            <span className="relative flex h-1.5 w-1.5 @lg:h-2 @lg:w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#3ee07f] opacity-70" />
+              <span className="relative inline-flex h-full w-full rounded-full bg-[#3ee07f]" />
+            </span>
+            Live demo
+          </span>
+          <span className="font-[family-name:var(--font-display)] text-[16px] font-bold leading-tight tracking-[-0.01em] text-white @md:text-[19px] @lg:text-[23px]">
+            Watch the live WhatsApp demo
+          </span>
+          <span className="text-[12px] leading-snug text-white/65 @md:text-[13px] @lg:text-[14.5px]">See what every buyer receives</span>
+        </span>
+
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#25d366] text-[#062b14] shadow-[0_0_20px_-4px_rgba(37,211,102,0.9)] transition-[background-color,transform] duration-300 group-hover:scale-105 group-hover:bg-white @md:h-11 @md:w-11 @lg:h-12 @lg:w-12">
+          <ArrowRight strokeWidth={2.6} className="proof-demo__icon h-[18px] w-[18px] @lg:h-5 @lg:w-5" aria-hidden="true" />
+        </span>
+      </span>
+    </a>
+  )
+}
 
 export const STROKES = {
   cyan: ['#53f7fb', '#4f9bff'],

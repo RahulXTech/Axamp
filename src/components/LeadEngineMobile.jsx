@@ -23,7 +23,7 @@ import {
 import { scrollToTarget } from '../lib/scroll'
 import { PillarIcon, WhatsAppIcon } from './icons'
 import { COPY } from './LeadEngineAdmission'
-import { GoogleG, Orb, Shell, Tag, pad } from './LeadEngineParts'
+import { GoogleG, Orb, ProofDemoButton, Shell, Tag, pad } from './LeadEngineParts'
 
 /* ============================================================
    THE LEAD ENGINE, PHONES / TABLETS
@@ -276,6 +276,7 @@ export function EstateMobile({ proof }) {
               </button>
             ))}
           </div>
+          <ProofDemoButton className="mt-3.5 w-full" />
         </div>
       </Shell>
       <Drop color="#53f7fb" />

@@ -1,6 +1,11 @@
 // ─── About page content ─────────────────────────────────────────────────
 // Icons are lucide-react names, mapped in src/pages/About.jsx.
 
+// Team photos are served from ImageKit (smaller, auto WebP/AVIF, CDN).
+// Shown at most ~300px wide, so 640px covers 2× screens; c-at_max never upscales.
+const TEAM = 'https://ik.imagekit.io/9zyan4kvck/team'
+const teamPhoto = (file) => `${TEAM}/${file}?tr=w-640,c-at_max`
+
 export const stats = [
   { value: '7+', label: 'Years in digital strategy' },
   { value: '20+', label: 'Brands grown' },
@@ -28,20 +33,41 @@ export const founder = {
   sectors: ['Real Estate', 'Personal Branding', 'Hospital', 'University', 'F&B', 'Lifestyle'],
 }
 
-// "Meet the team" — photos in public/assets/team/ (portrait, 4:5).
+// Spotlight on the About page (same layout as the founder card, which is hidden for now)
+export const cmo = {
+  name: 'Aditya Singh',
+  // 760×943 portrait
+  photo: teamPhoto('aditya-singh.jpg'),
+  role: 'Chief Marketing Officer',
+  // Pill under the photo
+  tag: 'CMO',
+  quote: 'Marketing people remember — and results you can measure.',
+  bio: "Aditya heads marketing at AXAMP — shaping how the brand shows up across social media, content and paid campaigns. He blends AI-driven insight with real storytelling to turn attention into enquiries, helping AXAMP and its 20+ brands grow.",
+  badges: [
+    { value: '20+', label: 'Brands grown', icon: 'rocket' },
+    { value: '6', label: 'Sectors', icon: 'layers' },
+  ],
+  skills: [
+    { icon: 'magnet', label: 'Brand Strategy' },
+    { icon: 'trending', label: 'Growth Marketing' },
+    { icon: 'send', label: 'Social & Content' },
+  ],
+  sectors: ['Real Estate', 'Personal Branding', 'Hospital', 'University', 'F&B', 'Lifestyle'],
+}
+
+// "Meet the team" — photos on ImageKit (TEAM above), portrait 4:5.
 // Shown in a random order on every visit (pages/About.jsx).
 // A member without a `name` / `role` simply shows "AXAMP team".
 // `fit: 'contain'` shows the whole photo uncropped (for photos that aren't 4:5).
 // TODO(AXAMP): add everyone's role.
 // TODO(AXAMP): Riya's photo is very small (187px) — swap in a larger one.
 export const team = [
-  { name: 'Rahul', role: '', photo: '/assets/team/rahul-kumar.webp' },
-  { name: 'Krishna', role: '', photo: '/assets/team/krishna-verma.webp', fit: 'contain' },
-  { name: 'Riya', role: '', photo: '/assets/team/riya.webp' },
-  { name: 'Tanishka', role: '', photo: '/assets/team/tanishka-sinah-chauhan.webp' },
-  { name: 'Aditya', role: '', photo: '/assets/team/aditya.webp' },
-  { name: 'Anand', role: '', photo: '/assets/team/anand.webp' },
-  { name: 'Shivangi', role: '', photo: '/assets/team/shivangi.jpg' },
+  { name: 'Rahul', role: '', photo: teamPhoto('rahul-kumar.webp') },
+  { name: 'Krishna', role: '', photo: teamPhoto('krishna-verma.webp'), fit: 'contain' },
+  { name: 'Riya', role: '', photo: teamPhoto('riya.webp') },
+  { name: 'Tanishka', role: '', photo: teamPhoto('tanishka-sinah-chauhan.webp') },
+  { name: 'Anand', role: '', photo: teamPhoto('anand.webp') },
+  { name: 'Shivangi', role: '', photo: teamPhoto('shivangi.jpg') },
 ]
 
 // The team grid always shows this many boxes (5 per row on desktop);

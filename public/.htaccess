@@ -2,18 +2,42 @@
 
 Options -Indexes
 
+# /services is both a page and the folder of service images (public/services/).
+# Without this the server answers /services with a redirect to /services/ and
+# then a 403, so the page can't be opened directly.
+DirectorySlash Off
+
+# Unknown URLs get a real 404; the app's "page not found" screen is the body
+ErrorDocument 404 /index.html
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # The mailer's settings (API key) are never served
-  RewriteRule ^api/config\.php$ - [F,L]
+  # The mailer's settings (API key) and the Google Sheet helper are never served
+  RewriteRule ^api/(config|sheets)\.php$ - [F,L]
+
+  # One address for the site: www.axamp.com → axamp.com
+  # (/api/ is left alone — a redirected POST would arrive as a GET)
+  RewriteCond %{HTTP_HOST} ^www\.axamp\.com$ [NC]
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteRule ^ https://axamp.com%{REQUEST_URI} [R=301,L]
 
   # Contact form: POST /api/contact → the PHP mailer (api/contact.php)
   RewriteRule ^api/contact/?$ api/contact.php [L]
 
-  # React Router: /about, /contact, … load the app instead of a 404
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  # /index.html → / (only when requested, never on the server's own rewrites)
+  RewriteCond %{THE_REQUEST} ^[A-Z]+\s/index\.html[?\s]
+  RewriteRule ^index\.html$ https://%{HTTP_HOST}/ [R=301,L]
+
+  # /real-estate is the home page
+  RewriteRule ^real-estate/*$ https://%{HTTP_HOST}/ [R=301,L]
+
+  # Pages have no trailing slash: /about/ → /about
+  RewriteRule ^(hospital|university|services|packages|build-package|build-package/report|about|contact)/+$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # React Router pages — keep this list in step with the routes in src/App.jsx
+  RewriteRule ^(hospital|university|services|packages|build-package|build-package/report|about|contact)$ index.html [L]
+
+  # Anything else that isn't a real file falls through to a 404 (ErrorDocument above)
 </IfModule>

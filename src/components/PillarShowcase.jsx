@@ -5,8 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Autoplay, EffectCoverflow, Keyboard } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/effect-coverflow'
+// Swiper's CSS is imported in main.jsx (see the note there)
 
 import { resolveReel } from '../data/work'
 import { compact } from '../data/reels'

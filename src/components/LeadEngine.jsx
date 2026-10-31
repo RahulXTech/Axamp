@@ -33,7 +33,7 @@ import { useIndustry } from '../lib/industry'
 import { useMediaQuery } from '../lib/hooks'
 import { scrollToTarget } from '../lib/scroll'
 import { PillarIcon } from './icons'
-import { FlowLines, GoogleG, Orb, Shell, SourceCard, StepCard, StepLabel, makeDraw, pad, useFlowPaths } from './LeadEngineParts'
+import { FlowLines, GoogleG, Orb, ProofDemoButton, Shell, SourceCard, StepCard, StepLabel, makeDraw, pad, useFlowPaths } from './LeadEngineParts'
 import { ADMIT_LINKS, AdmissionDiagram, COPY, admitTimeline } from './LeadEngineAdmission'
 import { AdmissionMobile, EstateMobile } from './LeadEngineMobile'
 
@@ -296,7 +296,15 @@ function ProofCard() {
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-5 gap-2 sm:mt-5 sm:gap-3">
+        <div className="relative mt-4 grid grid-cols-5 gap-2 sm:mt-5 sm:gap-3">
+          {/* Live demo, large, over the middle of the videos; the uncovered
+              parts of each video stay clickable. The scrim pushes the videos
+              back so the button is the first thing you read. */}
+          <div className="pointer-events-none absolute inset-x-0 top-[46%] z-10 flex -translate-y-1/2 justify-center">
+            <span aria-hidden="true" className="absolute left-1/2 top-1/2 h-[210%] w-[130%] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(5,8,26,0.9),rgba(5,8,26,0.55)_55%,transparent)]" />
+            <ProofDemoButton data-anim="proof-demo" className="pointer-events-auto w-full max-w-[600px]" />
+          </div>
+
           {proof.map((p, i) => (
             <button
               key={p.id}
@@ -442,6 +450,7 @@ function estateTimeline(tl, q, draw) {
   draw(['l-proof'])
   tl.from(q('[data-anim="proof"]'), { x: 60, autoAlpha: 0 }, '-=0.4')
     .from(q('[data-anim="chip"]'), { y: 30, scale: 0.8, autoAlpha: 0, stagger: 0.12, ease: 'back.out(1.6)' })
+    .from(q('[data-anim="proof-demo"]'), { y: 20, scale: 0.85, autoAlpha: 0, ease: 'back.out(1.6)' }, '-=0.3')
     .from(q('[data-anim="label"]').slice(3), { x: -40, autoAlpha: 0 })
   draw(['l-book', 'l-proof-book'], '<', 0.1)
   tl.from(q('[data-node="slot"]'), { y: 40, scale: 0.92, autoAlpha: 0 }, '-=0.3')
@@ -656,19 +665,22 @@ function Engine({ flow: { links, timeline, Diagram, MobileDiagram, goal, sub } }
 
       <div className="relative mx-auto max-w-[1280px]">
         {/* ── Header ─────────────────────────────────────── */}
-        <div className="le-head mx-auto flex max-w-[900px] flex-col items-center gap-6 text-center max-sm:gap-4">
-          <span className="le-pill glass inline-flex items-center gap-[10px] rounded-full px-4 py-[10px] text-[var(--cyan)]">
-            <Workflow size={16} strokeWidth={1.8} aria-hidden="true" />
-            <span className="font-[family-name:var(--font-display)] text-[12px] font-bold uppercase leading-none tracking-[0.2em] text-[var(--text)]">
-              The AXAMP lead engine
+        <div className="le-head mx-auto flex flex-col items-center gap-6 text-center max-sm:gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+            <span className="le-pill glass inline-flex items-center gap-[10px] rounded-full px-4 py-[10px] text-[var(--cyan)]">
+              <Workflow size={16} strokeWidth={1.8} aria-hidden="true" />
+              <span className="font-[family-name:var(--font-display)] text-[12px] font-bold uppercase leading-none tracking-[0.2em] text-[var(--text)]">
+                The AXAMP lead engine
+              </span>
             </span>
-          </span>
-          <h2 className="font-[family-name:var(--font-display)] text-[clamp(2.2rem,5vw,4.4rem)] font-extrabold leading-[1.02] tracking-[-0.04em] text-white">
-            <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em]">
-              <span className="le-line block">From first scroll</span>
-            </span>
-            <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em]">
-              <span className="le-line block bg-[linear-gradient(90deg,#25d366,var(--cyan)_50%,#ffb347)] bg-clip-text text-transparent">
+          </div>
+          {/* One line from tablets up; phones are too narrow, so it breaks after "scroll" */}
+          <h2 className="font-[family-name:var(--font-display)] text-[clamp(2.2rem,5vw,4.4rem)] font-extrabold leading-[1.02] tracking-[-0.04em] text-white md:whitespace-nowrap md:text-[clamp(1.6rem,3.4vw,3.3rem)]">
+            <span className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-top">
+              <span className="le-line inline-block">From first scroll</span>
+            </span>{' '}
+            <span className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-top">
+              <span className="le-line inline-block bg-[linear-gradient(90deg,#25d366,var(--cyan)_50%,#ffb347)] bg-clip-text text-transparent">
                 {goal}
               </span>
             </span>

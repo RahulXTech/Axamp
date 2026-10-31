@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ArrowUpRight, ChevronRight, House, Mail, Package, Sparkles, Users } from 'lucide-react'
+import {
+  FaArrowRight,
+  FaBoxOpen,
+  FaCalculator,
+  FaChevronRight,
+  FaEnvelope,
+  FaHouse,
+  FaUsers,
+  FaWandMagicSparkles,
+} from 'react-icons/fa6'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -16,11 +25,12 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 // Icon beside each page in the mobile menu
 const pageIcons = {
-  '/': House,
-  '/services': Sparkles,
-  '/packages': Package,
-  '/about': Users,
-  '/contact': Mail,
+  '/': FaHouse,
+  '/services': FaWandMagicSparkles,
+  '/packages': FaBoxOpen,
+  '/build-package': FaCalculator,
+  '/about': FaUsers,
+  '/contact': FaEnvelope,
 }
 
 export default function Nav() {
@@ -180,7 +190,7 @@ export default function Nav() {
     if (!menuOpen) return
 
     const onKey = (e) => e.key === 'Escape' && closeMenu()
-    const mq = window.matchMedia('(min-width: 768px)')
+    const mq = window.matchMedia('(min-width: 1100px)')
     const onWide = () => mq.matches && closeMenu()
 
     document.addEventListener('keydown', onKey)
@@ -215,10 +225,10 @@ export default function Nav() {
           className={`
             relative
             flex items-center justify-between gap-4
-            md:grid md:grid-cols-[1fr_auto_1fr]
+            min-[1100px]:grid min-[1100px]:grid-cols-[1fr_auto_1fr]
             rounded-full
             border
-            pl-5 pr-2
+            pl-5 pr-2 max-[360px]:pl-3.5
             backdrop-blur-xl
             transition-[height,background-color,border-color,box-shadow]
             duration-500 ease-[var(--ease)]
@@ -253,12 +263,12 @@ export default function Nav() {
               onClick={go('/')}
               size={34}
               wordHeight={21}
-              wordClassName="max-[420px]:h-[17px] max-[420px]:w-auto"
+              wordClassName="max-[420px]:h-[17px] max-[360px]:h-[14px] max-[420px]:w-auto"
             />
           </div>
 
           {/* ── CENTER LINKS (desktop) ───────────────── */}
-          <nav aria-label="Primary" className="hidden md:block">
+          <nav aria-label="Primary" className="hidden min-[1100px]:block">
             <ul
               className="
                 relative m-0 flex list-none items-center gap-1
@@ -302,21 +312,20 @@ export default function Nav() {
                       className={`
                         group relative z-[1]
                         flex items-center gap-2
-                        h-10 px-5 xl:pl-4
+                        h-10 px-3.5 min-[1280px]:px-3
+                        whitespace-nowrap
                         rounded-full
                         text-[13px] font-semibold tracking-[0.02em]
                         transition-colors duration-300
-                        max-[900px]:px-4
                         ${lit ? 'text-white' : 'text-white/60 hover:text-white'}
                       `}
                     >
                       {Icon && (
                         <Icon
-                          size={15}
-                          strokeWidth={2}
                           aria-hidden="true"
                           className={`
-                            hidden xl:block
+                            hidden min-[1280px]:block
+                            h-[13px] w-auto shrink-0 -translate-y-[0.5px]
                             transition-[color,transform] duration-300 ease-[var(--ease)]
                             ${lit ? 'scale-110 text-[var(--cyan)]' : 'text-white/40 group-hover:text-white/80'}
                           `}
@@ -352,6 +361,7 @@ export default function Nav() {
                 relative isolate overflow-hidden
                 hidden lg:inline-flex
                 items-center gap-2.5
+                whitespace-nowrap
                 h-11 pl-1.5 pr-5
                 rounded-full
                 text-[13px] font-semibold tracking-[0.01em]
@@ -384,10 +394,9 @@ export default function Nav() {
                 </span>
               </span>
               Book a Call
-              <ArrowUpRight
-                size={15}
-                strokeWidth={2.2}
-                className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              <FaArrowRight
+                size={13}
+                className="-rotate-45 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
               />
             </a>
 
@@ -417,7 +426,7 @@ export default function Nav() {
               aria-controls="mobile-menu"
               onClick={() => (menuOpen ? closeMenu() : openMenu())}
               className={`
-                group md:hidden
+                group min-[1100px]:hidden
                 relative grid h-11 w-11 place-items-center
                 rounded-full
                 border border-transparent
@@ -495,7 +504,7 @@ export default function Nav() {
             px-5 pb-6 pt-[96px]
             backdrop-blur-2xl
             font-[family-name:var(--font-display)]
-            md:hidden
+            min-[1100px]:hidden
           "
         >
           {/* Ambient glow + faint grid */}
@@ -536,7 +545,7 @@ export default function Nav() {
             <ul className="m-0 list-none p-1.5">
               {pages.map((page) => {
                 const current = active === page.to
-                const Icon = pageIcons[page.to] ?? ChevronRight
+                const Icon = pageIcons[page.to] ?? FaChevronRight
 
                 return (
                   <li
@@ -572,7 +581,7 @@ export default function Nav() {
                           }
                         `}
                       >
-                        <Icon size={18} strokeWidth={2} />
+                        <Icon aria-hidden="true" className="h-4 w-auto" />
                       </span>
 
                       <span className="flex-1 text-[17px] font-semibold tracking-[-0.01em] text-white">
@@ -585,8 +594,8 @@ export default function Nav() {
                           You're here
                         </span>
                       ) : (
-                        <ChevronRight
-                          size={18}
+                        <FaChevronRight
+                          size={14}
                           className="text-white/30 transition-[transform,color] duration-300 ease-[var(--ease)] group-hover:translate-x-0.5 group-hover:text-white/70"
                         />
                       )}
@@ -692,10 +701,9 @@ export default function Nav() {
                     Chat with us on WhatsApp
                   </span>
                 </span>
-                <ArrowUpRight
-                  size={18}
-                  strokeWidth={2.2}
-                  className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                <FaArrowRight
+                  size={16}
+                  className="-rotate-45 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                 />
               </a>
 
