@@ -83,27 +83,54 @@ const titleRest = titleWords.join(' ')
 // "lead-related" never breaks at its hyphen
 const [hlFirst, ...hlRest] = leadLeak.highlight.split(' ')
 
-/* Counts up/down to `value` instead of jumping */
-function useCountTo(value, ms = 750) {
-  const [shown, setShown] = useState(value)
-  const from = useRef(value)
+/* Counts up/down to `value` instead of jumping. Writes the number straight
+ * into its text node each frame, so the 100-dot grid around it isn't
+ * re-rendered ~45 times per stage change (it used to setState per frame). */
+function CountTo({ value, ms = 750 }) {
+  const ref = useRef(null)
+  const shown = useRef(value)
+  const [initial] = useState(value) // React renders this once and never rewrites it
 
   useEffect(() => {
+    const node = ref.current?.firstChild
+    const a = shown.current
+    if (!node || a === value) return
+    const set = (v) => {
+      shown.current = v
+      node.nodeValue = String(v)
+    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return set(value)
     const start = performance.now()
-    const a = from.current
     let raf
     const tick = (now) => {
       const t = Math.min(1, (now - start) / ms)
-      const v = Math.round(a + (value - a) * (1 - (1 - t) ** 3))
-      from.current = v
-      setShown(v)
+      set(Math.round(a + (value - a) * (1 - (1 - t) ** 3)))
       if (t < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [value, ms])
 
-  return shown
+  return <span ref={ref}>{initial}</span>
+}
+
+/* Low-resource devices (≤4 CPU cores or ≤4 GB memory, or Data Saver on) get
+ * the same page with lighter decoration: the 99% shine, the tag sheen and
+ * the warning pulse play twice then rest, and the panel skips its frosted
+ * blur. The lead pipeline itself plays in full everywhere. */
+const LITE =
+  typeof navigator !== 'undefined' &&
+  ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || !!navigator.connection?.saveData)
+
+// False while the tab is in the background
+function usePageVisible() {
+  const [visible, setVisible] = useState(() => typeof document === 'undefined' || !document.hidden)
+  useEffect(() => {
+    const on = () => setVisible(!document.hidden)
+    document.addEventListener('visibilitychange', on)
+    return () => document.removeEventListener('visibilitychange', on)
+  }, [])
+  return visible
 }
 
 const ui = 'font-[family-name:var(--font-ui)]'
@@ -118,7 +145,8 @@ function ControlButton({ label, onClick, disabled, primary, children }) {
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={`grid shrink-0 place-items-center rounded-full transition-[background,color,transform,opacity] duration-300 ease-[var(--ease)] disabled:pointer-events-none disabled:opacity-30 ${
+      // `before:` widens the tap area to 44px on touch screens without changing the look
+      className={`relative grid shrink-0 place-items-center rounded-full transition-[background,color,transform,opacity] duration-300 ease-[var(--ease)] before:absolute before:-inset-1 before:rounded-full before:content-[''] disabled:pointer-events-none disabled:opacity-30 ${
         primary
           ? 'h-11 w-11 bg-[var(--cyan)] text-[var(--navy)] shadow-[0_8px_24px_-8px_rgba(83,247,251,0.8)] hover:scale-105'
           : 'h-9 w-9 border border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.1] hover:text-white'
@@ -229,7 +257,6 @@ function Stepper({ step, onPick }) {
 
 /* ── Left: the counter and the 10 × 10 grid of leads ────────────── */
 function LeadGrid({ step }) {
-  const count = useCountTo(leadsAfter(step))
   const done = step >= LAST
 
   return (
@@ -249,12 +276,16 @@ function LeadGrid({ step }) {
                   : 'text-white'
             }`}
           >
-            {count}
+            <CountTo value={leadsAfter(step)} />
             <span className="ml-1 text-[0.3em] font-[600] tracking-normal text-[var(--faint)] [text-shadow:none]">/ {total}</span>
           </span>
         </div>
-        <span className={`${ui} mb-1 min-w-0 max-w-[150px] text-right text-[12.5px] leading-[1.4] text-[var(--muted)] max-[600px]:mb-0 max-[600px]:text-left max-[600px]:text-[11.5px]`}>
-          {step < 0 ? 'Fresh leads in your CRM' : done ? 'Actually visit the property' : 'Still in play'}
+        {/* All three captions share one grid cell (only the current one visible),
+            so the counter doesn't shift when the caption's line count changes */}
+        <span className={`${ui} mb-1 grid min-w-0 max-w-[150px] text-right text-[12.5px] leading-[1.4] text-[var(--muted)] max-[600px]:mb-0 max-[600px]:text-left max-[600px]:text-[11.5px]`}>
+          {['Fresh leads in your CRM', 'Still in play', 'Actually visit the property'].map((t, k) => (
+            <span key={t} className={`[grid-area:1/1] ${k === (step < 0 ? 0 : done ? 2 : 1) ? '' : 'invisible'}`}>{t}</span>
+          ))}
         </span>
       </div>
 
@@ -287,26 +318,30 @@ function LeadGrid({ step }) {
 }
 
 /* ── Right: the stage in focus, in plain words ──────────────────── */
-function Spotlight({ step }) {
+// [icon, kicker, headline, sub] for a step (-1 = start, LAST = the result)
+function spotlightFor(step) {
   const stage = stages[step]
-  const done = step >= LAST
+  return step < 0
+    ? [<FaInbox aria-hidden="true" />, 'Day 1', <>{total} fresh leads land in your CRM.</>, 'Watch what happens to them, one stage at a time.']
+    : step >= LAST
+      ? [
+          <FaHouseChimneyUser aria-hidden="true" />,
+          'The result',
+          <>Only <span className="text-[var(--cyan)]">{visits}</span> of {total} leads visit the property.</>,
+          `${total - visits} leaked away before anyone saw the site.`,
+        ]
+      : [
+          <StageIcon stage={stage} />,
+          `Stage ${step + 1} of ${LAST} · out of ${stage.from}`,
+          <><span className="text-[#ff6b70]">{stage.lost}</span> {stage.text}</>,
+          `${stage.from - stage.lost} leads left after this stage.`,
+        ]
+}
+const ALL_STEPS = Array.from({ length: LAST + 2 }, (_, i) => i - 1)
 
-  const [icon, kicker, headline, sub] =
-    step < 0
-      ? [<FaInbox aria-hidden="true" />, 'Day 1', <>{total} fresh leads land in your CRM.</>, 'Watch what happens to them, one stage at a time.']
-      : done
-        ? [
-            <FaHouseChimneyUser aria-hidden="true" />,
-            'The result',
-            <>Only <span className="text-[var(--cyan)]">{visits}</span> of {total} leads visit the property.</>,
-            `${total - visits} leaked away before anyone saw the site.`,
-          ]
-        : [
-            <StageIcon stage={stage} />,
-            `Stage ${step + 1} of ${LAST} · out of ${stage.from}`,
-            <><span className="text-[#ff6b70]">{stage.lost}</span> {stage.text}</>,
-            `${stage.from - stage.lost} leads left after this stage.`,
-          ]
+function Spotlight({ step }) {
+  const done = step >= LAST
+  const [icon, kicker] = spotlightFor(step)
 
   return (
     <div
@@ -335,8 +370,21 @@ function Spotlight({ step }) {
         <span className={`${ui} text-[11px] font-semibold uppercase leading-none tracking-[0.2em] ${done ? 'text-[var(--cyan)]' : step < 0 ? 'text-[var(--faint)]' : 'text-[#ff8a8e]'}`}>
           {kicker}
         </span>
-        <p className={`${display} min-h-[3.9em] text-[clamp(17px,1.5vw,20px)] font-[700] leading-[1.3] tracking-[-0.01em] text-white max-[600px]:text-[16px]`}>{headline}</p>
-        <p className={`${ui} text-[13px] leading-[1.5] text-[var(--muted)] max-[600px]:hidden`}>{sub}</p>
+        {/* Every step's text sits in the same grid cell, only the current one
+            visible, so the card is always as tall as its tallest step. It used
+            to grow a line for the longer stages, jumping the whole panel
+            (layout shift). Hidden copies stay out of the accessibility tree. */}
+        <div className="grid">
+          {ALL_STEPS.map((s) => {
+            const [, , headline, sub] = spotlightFor(s)
+            return (
+              <div key={s} className={`flex flex-col gap-1.5 [grid-area:1/1] ${s === step ? '' : 'invisible'}`}>
+                <p className={`${display} min-h-[3.9em] text-[clamp(17px,1.5vw,20px)] font-[700] leading-[1.3] tracking-[-0.01em] text-white max-[600px]:text-[16px]`}>{headline}</p>
+                <p className={`${ui} text-[13px] leading-[1.5] text-[var(--muted)] max-[600px]:hidden`}>{sub}</p>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
@@ -399,7 +447,8 @@ function FunnelChart({ step, onPick }) {
             type="button"
             onClick={() => onPick(i - 1)}
             aria-label={i === 0 ? 'Back to the start' : `Stage ${i}: ${stages[i - 1].short}`}
-            className={`${ui} text-center text-[11px] font-semibold leading-none transition-colors ${i === current ? 'text-white' : 'text-white/35 hover:text-white/70'}`}
+            // The icons are small: an invisible layer gives each a ~40px-tall tap area
+            className={`${ui} relative text-center text-[11px] font-semibold leading-none transition-colors before:absolute before:-inset-x-1.5 before:-inset-y-3 before:content-[''] ${i === current ? 'text-white' : 'text-white/35 hover:text-white/70'}`}
           >
             {i === 0 ? 'Start' : <span className="inline-grid place-items-center text-[14px]"><StageIcon stage={stages[i - 1]} /></span>}
           </button>
@@ -409,50 +458,64 @@ function FunnelChart({ step, onPick }) {
   )
 }
 
-export default function LeadLeak() {
+// `standalone`: the section is its own page (/lead-leak), not pinned under the
+// home page's proof strip — no pin or dimming, no rounded top edge.
+export default function LeadLeak({ standalone = false }) {
   const ref = useRef(null)
   const contentRef = useRef(null)
   const goTo = useGo()
   const fitRef = useRef(null)
   const shadeRef = useRef(null)
   const active = useInView(ref, '-15% 0px')
+  const pageVisible = usePageVisible()
+  // Home page: true once the proof strip has fully covered the section
+  const [covered, setCovered] = useState(false)
 
   /* Like the hero: the section is one screen tall and stays pinned
    * (no extra spacing) while the proof strip slides up over it,
-   * shrinking back and dimming underneath. */
+   * shrinking back and dimming underneath. One scrubbed timeline drives
+   * both (it used to be two tweens, each with its own ScrollTrigger);
+   * useGSAP's context reverts the pin and the timeline on unmount. */
   useGSAP(
     () => {
+      if (standalone) return
       const el = ref.current
-      const scrub = {
+      const range = {
         trigger: el,
         start: 'top top',
         // An element, not '#process': selectors only look inside the scope
         endTrigger: document.getElementById('process'),
         end: 'top top',
-        scrub: true,
       }
 
-      // Once fully covered, hide it (saves GPU)
-      const covered = (yes) => gsap.set(el, { visibility: yes ? 'hidden' : 'visible' })
+      // Once fully covered, hide it (saves GPU) and pause its animations
+      const cover = (yes) => {
+        gsap.set(el, { visibility: yes ? 'hidden' : 'visible' })
+        setCovered(yes)
+      }
 
       ScrollTrigger.create({
-        ...scrub,
-        scrub: false,
+        ...range,
         pin: true,
         pinSpacing: false,
-        onLeave: () => covered(true),
-        onEnterBack: () => covered(false),
+        onLeave: () => cover(true),
+        onEnterBack: () => cover(false),
       })
 
-      gsap.to(contentRef.current, { scale: 0.94, ease: 'none', scrollTrigger: scrub })
-      gsap.fromTo(shadeRef.current, { opacity: 0 }, { opacity: 0.75, ease: 'none', scrollTrigger: scrub })
+      gsap
+        .timeline({ defaults: { ease: 'none' }, scrollTrigger: { ...range, scrub: true } })
+        .to(contentRef.current, { scale: 0.94 }, 0)
+        .fromTo(shadeRef.current, { opacity: 0 }, { opacity: 0.75 }, 0)
     },
     { scope: ref },
   )
 
   /* Still taller than the space under the nav (short laptops, phones)?
-   * Shrink the whole layout to fit. Re-measured when the screen changes
-   * size, not per stage, so it doesn't jump around while the panel plays. */
+   * Shrink the whole layout to fit the one-screen section. Re-measured when
+   * the screen changes size, not per stage, so it doesn't jump around while
+   * the panel plays. On its own page the section is one screen tall only on
+   * desktop (over 1024px); below that it grows to fit its content, so this
+   * works out to 1 and text and buttons keep their real size. */
   useEffect(() => {
     const box = contentRef.current
     const inner = fitRef.current
@@ -462,8 +525,12 @@ export default function LeadLeak() {
     }
     const ro = new ResizeObserver(fit)
     ro.observe(box)
-    document.fonts?.ready.then(fit)
-    return () => ro.disconnect()
+    let alive = true // the fonts promise can settle after the page is left
+    document.fonts?.ready.then(() => alive && fit())
+    return () => {
+      alive = false
+      ro.disconnect()
+    }
   }, [])
 
   // -1 = all 100 leads, 0…4 = that stage leaking, LAST = the summary.
@@ -474,7 +541,11 @@ export default function LeadLeak() {
   const [paused, setPaused] = useState(false)
 
   const ms = held ? HOLD_MS : step < 0 ? INTRO_MS : step >= LAST ? END_MS : STAGE_MS
-  const running = active && !paused
+  // On screen, in a visible tab and not covered: only then does anything run.
+  // Off screen, the stage timer stops and every looping animation is paused
+  // (the `ll-paused` class), so the page does no work nobody can see.
+  const live = active && pageVisible && !covered
+  const running = live && !paused
 
   useEffect(() => {
     if (!running) return
@@ -503,35 +574,51 @@ export default function LeadLeak() {
     <section
       id="lead-leak"
       ref={ref}
-      className="
+      className={`
         relative z-10
         flex flex-col
-        h-screen h-[100svh] min-h-[520px]
         overflow-hidden
         bg-[var(--navy)]
-        rounded-t-[clamp(28px,4vw,56px)]
-        border-t border-[rgba(255,107,112,0.22)]
-        shadow-[0_-40px_90px_-20px_rgba(0,0,0,0.75)]
+        ${standalone
+          ? 'min-h-screen min-h-[100svh] min-[1025px]:h-screen min-[1025px]:h-[100svh] min-[1025px]:min-h-[520px] max-[600px]:min-h-0 max-[600px]:pb-6'
+          : `
+          h-screen h-[100svh] min-h-[520px]
+          rounded-t-[clamp(28px,4vw,56px)]
+          border-t border-[rgba(255,107,112,0.22)]
+          shadow-[0_-40px_90px_-20px_rgba(0,0,0,0.75)]
+          max-[600px]:pb-[92px]
+        `}
         px-[var(--gutter)]
         pt-[96px]
         pb-[96px]
 
         max-[600px]:pt-[84px]
-        max-[600px]:pb-[92px]
-      "
+        ${live ? '' : 'll-paused'}
+        ${LITE ? 'll-lite' : ''}
+      `}
     >
       {/* ── Backdrop: city towers at blue hour + red haze ──────── */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        {/* Photo: Unsplash (photo-1513563326940), free to use */}
-        <img
-          src="/assets/lead-leak-city.webp"
-          srcSet="/assets/lead-leak-city-sm.webp 900w, /assets/lead-leak-city.webp 1800w"
-          sizes="100vw"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="absolute inset-x-0 top-0 h-[70%] w-full object-cover object-[50%_100%] [mask-image:linear-gradient(180deg,#000_60%,transparent)] max-[1000px]:h-[45%]"
-        />
+        {/* Photo: Unsplash (photo-1513563326940), free to use.
+            Phones (narrower than 600px, the same breakpoint as the phone
+            layout) always get the 900px file: with `sizes="100vw"` alone a
+            3× phone asked for the 1800px one (370 KB vs 122 KB) to fill a
+            darkened backdrop ~510px wide. */}
+        <picture>
+          <source media="(max-width: 599.98px)" srcSet="/assets/lead-leak-city-sm.webp" />
+          <img
+            src="/assets/lead-leak-city.webp"
+            srcSet="/assets/lead-leak-city-sm.webp 900w, /assets/lead-leak-city.webp 1800w"
+            sizes="100vw"
+            alt=""
+            width="1800"
+            height="1200"
+            loading={standalone ? 'eager' : 'lazy'}
+            fetchPriority={standalone ? 'high' : 'auto'}
+            decoding="async"
+            className="absolute inset-x-0 top-0 h-[70%] w-full object-cover object-[50%_100%] [mask-image:linear-gradient(180deg,#000_60%,transparent)] max-[1000px]:h-[45%]"
+          />
+        </picture>
         {/* Tint the photo navy so the panel and text stay readable */}
         <div className="absolute inset-0 bg-[rgba(11,18,41,0.42)]" />
         {/* Darker pool behind the headline */}
@@ -542,8 +629,8 @@ export default function LeadLeak() {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(70%_60%_at_50%_30%,#000,transparent)]" />
       </div>
 
-      {/* Dims the section as the proof strip slides over it */}
-      <div ref={shadeRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-[#05091a] opacity-0" />
+      {/* Dims the section as the proof strip slides over it (home page only) */}
+      {!standalone && <div ref={shadeRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-[#05091a] opacity-0" />}
 
       <div ref={contentRef} className="relative flex min-h-0 flex-1 items-center justify-center">
         {/* Header | panel side by side on desktop, stacked below that */}
@@ -585,8 +672,16 @@ export default function LeadLeak() {
 
                   {/* "99%" on top, "REALTORS" stamped underneath */}
                   <span className="flex flex-col items-start gap-3 max-[600px]:gap-2">
-                    <span className="ll-stat pb-[0.04em] pr-[0.08em] text-[clamp(72px,7vw,112px)] max-[600px]:text-[50px] font-[800] leading-[0.8] tracking-[-0.06em] [filter:drop-shadow(0_10px_40px_rgba(229,72,77,0.45))]">
-                      {leadLeak.stat}
+                    {/* "99%": static red → amber text, a red glow behind it (a blurred copy,
+                        .ll-stat-wrap::before) and a light sweeping across (.ll-shine: a pale
+                        copy seen through a moving window). The sweep is transforms only, run
+                        by the compositor; it used to animate the gradient (repainted every
+                        frame) with a drop-shadow filter re-blurred along with it. */}
+                    <span data-text={leadLeak.stat} className="ll-stat-wrap text-[clamp(72px,7vw,112px)] max-[600px]:text-[50px] font-[800] leading-[0.8] tracking-[-0.06em]">
+                      <span className="ll-stat block pb-[0.04em] pr-[0.08em]">{leadLeak.stat}</span>
+                      <span aria-hidden="true" className="ll-shine">
+                        <span className="pb-[0.04em] pr-[0.08em]">{leadLeak.stat}</span>
+                      </span>
                     </span>
                     <span className="ll-tag ml-1 inline-block rounded-[10px] bg-[linear-gradient(120deg,#ff8a8e,#ff6b70_45%,#ffb38a)] px-4 py-2 text-[clamp(20px,2vw,28px)] font-[800] uppercase leading-none tracking-[0.12em] text-[var(--navy)] shadow-[0_10px_30px_-8px_rgba(255,107,112,0.85),inset_0_1px_0_rgba(255,255,255,0.45)] max-[600px]:ml-0.5 max-[600px]:rounded-[7px] max-[600px]:px-2.5 max-[600px]:py-1.5 max-[600px]:text-[14px]">
                       {leadLeak.who}
@@ -699,7 +794,9 @@ export default function LeadLeak() {
             data-slide="right"
             className="rounded-[30px] bg-[linear-gradient(150deg,rgba(255,107,112,0.55),rgba(255,255,255,0.07)_35%,rgba(255,255,255,0.04)_65%,rgba(83,247,251,0.45))] p-px shadow-[0_50px_120px_-40px_rgba(0,0,0,0.95),0_0_80px_-30px_rgba(229,72,77,0.45)] max-[600px]:rounded-[22px]"
           >
-            <div className="overflow-hidden rounded-[29px] bg-[rgba(9,14,34,0.94)] pointer-fine:bg-[rgba(9,14,34,0.78)] pointer-fine:backdrop-blur-xl max-[600px]:rounded-[21px]">
+            {/* Frosted over the city on mouse devices; solid on touch and low-resource
+                devices, where re-blurring the backdrop every frame costs too much */}
+            <div className={`overflow-hidden rounded-[29px] bg-[rgba(9,14,34,0.94)] max-[600px]:rounded-[21px] ${LITE ? '' : 'pointer-fine:bg-[rgba(9,14,34,0.78)] pointer-fine:backdrop-blur-xl'}`}>
               <TopBar
                 step={step}
                 playing={!paused}

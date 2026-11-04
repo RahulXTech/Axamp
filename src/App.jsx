@@ -20,10 +20,11 @@ const Services = lazyPage(() => import('./pages/Services'))
 const Packages = lazyPage(() => import('./pages/Packages'))
 const BuildPackage = lazyPage(() => import('./pages/BuildPackage'))
 const LeadReport = lazyPage(() => import('./pages/LeadReport'))
+const LeadLeakPage = lazyPage(() => import('./pages/LeadLeakPage'))
 const About = lazyPage(() => import('./pages/About'))
 const Contact = lazyPage(() => import('./pages/Contact'))
 // …plus the Hospital coverflow, so switching to Hospital doesn't wait for it
-const lazyPages = [BuildPackage, Services, Packages, About, Contact, LeadReport, PillarShowcase]
+const lazyPages = [BuildPackage, Services, Packages, LeadLeakPage, About, Contact, LeadReport, PillarShowcase]
 
 const SITE_TITLE = 'AXAMP — From Leads to Sales'
 // Tab titles for the industry pages (real estate is the home page)
@@ -112,6 +113,7 @@ export default function App() {
           <Route path="/real-estate" element={<Navigate to="/" replace />} />
           <Route path="/services" element={<Page title="Services"><Services /></Page>} />
           <Route path="/packages" element={<Page title="Packages"><Packages /></Page>} />
+          <Route path="/lead-leak" element={<Page title="The Lead Leak"><LeadLeakPage /></Page>} />
           <Route path="/build-package" element={<Page title="Get Audit"><BuildPackage /></Page>} />
           <Route path="/build-package/report" element={<Page title="Lead Loss Report"><LeadReport /></Page>} />
           <Route path="/about" element={<Page fullTitle="About Us — MARKETING, BRANDING & AUTOMATION"><About /></Page>} />

@@ -30,7 +30,7 @@ function IndustryProof() {
 
   return (
     <div ref={ref} key={config.key} data-slide-root>
-      {/* Where a realtor's 100 leads go — real estate only */}
+      {/* Where a realtor's 100 leads go — real estate only (also its own page: /lead-leak) */}
       {config.key === 'real-estate' && <LeadLeak />}
       <ProcessStrip pillars={pillars} eyebrow={config.stripEyebrow} title={config.stripTitle} />
       <AnswerFirst pillars={pillars} />

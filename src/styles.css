@@ -1191,14 +1191,75 @@
 
 /* ── Lead leak (components/LeadLeak.jsx) ─────────────────────── */
 
-/* "99%" in a red → amber gradient with a light running through it */
+/* "99%" in a red → amber gradient (held where the old moving gradient
+   rested between sweeps) */
 .ll-stat {
   background: linear-gradient(100deg, #ff6b70 0%, var(--amber) 35%, #ffd2c2 50%, var(--amber) 65%, #ff6b70 100%);
   background-size: 250% 100%;
+  background-position: 0% 0;
   -webkit-background-clip: text;
           background-clip: text;
   color: transparent;
-  animation: af-shine 4.5s var(--ease) infinite;
+}
+
+/* …with a light running through it: a pale copy of the text seen through a
+   soft-edged window. The window moves right while the copy inside moves left
+   by the same distance, so the text holds still and only the light travels.
+   Both are transforms, so the compositor runs them (no repaint per frame).
+   Window = 40% of the text's width: it travels from -40% to +100% of the
+   text (-100% → 250% of itself) while the copy goes +40% → -100%. */
+.ll-shine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 50%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 50%, transparent);
+  transform: translateX(-100%);
+  animation: ll-shine-window 4.5s var(--ease) infinite;
+}
+.ll-shine > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 250%; /* = the text's full width */
+  white-space: nowrap;
+  color: #ffd2c2;
+  transform: translateX(40%);
+  animation: ll-shine-text 4.5s var(--ease) infinite;
+}
+@keyframes ll-shine-window {
+  0%        { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(250%); }
+}
+@keyframes ll-shine-text {
+  0%        { transform: translateX(40%); }
+  60%, 100% { transform: translateX(-100%); }
+}
+
+/* Its red glow: a blurred copy of the text behind it, drawn once. Same look
+   as the drop-shadow(0 10px 40px) it replaces (a 40px shadow blur is a
+   20px Gaussian), without re-blurring on every frame of the shine. */
+.ll-stat-wrap {
+  position: relative;
+  isolation: isolate;
+  display: block;
+}
+.ll-stat-wrap::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  color: rgba(229, 72, 77, 0.45);
+  filter: blur(20px);
+  transform: translateY(10px);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 /* One lead. Its state is set by the stage being played */
@@ -1234,8 +1295,10 @@
   75%  { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
+/* Transform only, so the browser's compositor runs it: animating the
+   box-shadow (as before) repainted the five dots every frame */
 @keyframes ll-win {
-  50% { transform: scale(1.4); box-shadow: 0 0 0 5px rgba(var(--cyan-rgb), 0.12), 0 0 22px rgba(var(--cyan-rgb), 1); }
+  50% { transform: scale(1.4); }
 }
 
 /* The −30 chip pops in each time the stage changes */
@@ -1285,12 +1348,24 @@
   35%, 100% { transform: translateX(120%); }
 }
 
-/* Warning badge before "struggle": a slow pulse ring */
-.ll-warn { animation: ll-warn 2.4s ease-out infinite; }
+/* Warning badge before "struggle": a slow pulse ring. The ring is its own
+   element that grows and fades (transform + opacity, run by the compositor);
+   it used to be an animated box-shadow, repainted every frame. */
+.ll-warn { position: relative; }
+.ll-warn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 4px rgba(255, 107, 112, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  animation: ll-warn 2.4s ease-out infinite;
+}
 @keyframes ll-warn {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 107, 112, 0.45), 0 0 20px rgba(255, 107, 112, 0.35); }
-  70%  { box-shadow: 0 0 0 12px rgba(255, 107, 112, 0), 0 0 20px rgba(255, 107, 112, 0.35); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 107, 112, 0), 0 0 20px rgba(255, 107, 112, 0.35); }
+  0%   { transform: scale(1); opacity: 1; }
+  70%  { transform: scale(1.55); opacity: 0; }
+  100% { transform: scale(1.55); opacity: 0; }
 }
 
 /* Brush underline under it, drawn in once the section is on screen */
@@ -1318,10 +1393,24 @@
 /* "Live" dot */
 .ll-live { animation: warn-blink 1.2s steps(1, end) infinite; box-shadow: 0 0 8px #ff6b70; }
 
+/* Off screen, in a background tab or covered on the home page: every loop
+   in the section holds still (LeadLeak.jsx adds .ll-paused) */
+.ll-paused *,
+.ll-paused *::before,
+.ll-paused *::after { animation-play-state: paused !important; }
+
+/* Low-resource devices (.ll-lite): the decorative loops play twice, then
+   rest. The pipeline (dots, timer, stage card, wiggle) is unchanged. */
+.ll-lite .ll-shine,
+.ll-lite .ll-shine > span,
+.ll-lite .ll-tag::after,
+.ll-lite .ll-warn::after { animation-iteration-count: 2; }
+
 /* The stage playback (dots, timer, stage card) always runs; only the
  * decorative loops stop for reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .ll-stat, .ll-wiggle, .ll-live, .ll-brush.is-drawn path, .ll-tag::after, .ll-warn { animation: none; transition: none; }
+  .ll-wiggle, .ll-live, .ll-brush.is-drawn path, .ll-tag::after, .ll-warn::after { animation: none; transition: none; }
+  .ll-shine { display: none; }
   .ll-brush path { stroke-dashoffset: 0; }
   .ll-meter { transform: none; transition: none; }
 }

@@ -9,6 +9,7 @@ export const pages = [
   { to: '/build-package', label: 'Get Audit' },
   { to: '/services', label: 'Services' },
   { to: '/packages', label: 'Packages' },
+  { to: '/lead-leak', label: 'Lead Leak' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ]
