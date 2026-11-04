@@ -1,5 +1,4 @@
-import { Fragment, memo, useCallback, useId, useRef, useState } from 'react'
-import { motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react'
+import { Fragment, memo, useCallback, useId, useState } from 'react'
 import { FaArrowRight, FaBoxOpen, FaBullseye, FaCheck, FaChevronDown } from 'react-icons/fa6'
 
 import CompactHero from '../components/CompactHero'
@@ -26,72 +25,21 @@ function SectionHeading({ eyebrow, title, text, center = false }) {
    Performance Marketing and Branding are columns holding their two
    packages, one above the other; Top 1% Realtors is one tall card.
 
-   Every card is a 3D slab (Framer Motion): it springs toward the
-   pointer, its content floats at different depths above the face,
-   and stacked edge layers show its thickness as it turns. Phones
-   have no pointer, so there the cards tip as they scroll past.
-   Reduced motion keeps them flat.
+   The cards are flat and static, kept light for low-end phones,
+   tablets and laptops. The 3D pointer/scroll tilt, the
+   spinning rim, the moving swirl and the blurred glows were dropped
+   (4 Nov 2026): they kept the page repainting and janky. A mouse
+   still lifts a card slightly on hover (CSS only).
 ------------------------------------------------------------------ */
 
-const SPRING = { stiffness: 160, damping: 18, mass: 0.7 }
-const FINE = '(hover: hover) and (pointer: fine)'
-
-// Lifts a layer off the card face
-const z = (px) => ({ transform: `translateZ(${px}px)` })
-
-// `perspective`: deeper for tall cards, so raised layers far from the centre stay in place
-function Tilt3D({ children, max = 9, perspective = 1100, radius, edge, className = '', style }) {
-  const ref = useRef(null)
-  const reduce = useReducedMotion()
-  const [fine] = useState(() => typeof window !== 'undefined' && window.matchMedia(FINE).matches)
-
-  // Pointer position across the card, -0.5 … 0.5
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [max, -max]), SPRING)
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-max, max]), SPRING)
-  const gx = useTransform(x, [-0.5, 0.5], [0, 100])
-  const gy = useTransform(y, [-0.5, 0.5], [0, 100])
-  const glare = useMotionTemplate`radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.17), transparent 48%)`
-
-  // Phones: tip back as the card enters, forward as it leaves
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  useMotionValueEvent(scrollYProgress, 'change', (v) => {
-    if (!fine && !reduce) y.set((v - 0.5) * 0.6)
-  })
-
-  const move = (e) => {
-    if (!fine || reduce) return
-    const r = e.currentTarget.getBoundingClientRect()
-    x.set((e.clientX - r.left) / r.width - 0.5)
-    y.set((e.clientY - r.top) / r.height - 0.5)
-  }
-  const leave = () => {
-    x.set(0)
-    y.set(0)
-  }
-
+function Card({ children, radius, className = '' }) {
   return (
-    <motion.div
-      ref={ref}
-      onPointerMove={move}
-      onPointerLeave={leave}
-      whileHover={fine && !reduce ? { y: -8 } : undefined}
-      transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-      className={`group/tilt relative ${className}`}
-      style={{ ...style, borderRadius: radius, rotateX: reduce ? 0 : rotateX, rotateY: reduce ? 0 : rotateY, transformPerspective: perspective, transformStyle: 'preserve-3d' }}
+    <div
+      className={`relative transition-transform duration-300 ease-[var(--ease)] hover:-translate-y-1.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${className}`}
+      style={{ borderRadius: radius }}
     >
-      {/* Thickness: edge layers behind the face, seen as the card turns */}
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ borderRadius: radius, background: edge, opacity: 1 - i * 0.18, ...z(-i * 5) }} />
-      ))}
       {children}
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/tilt:opacity-100"
-        style={{ borderRadius: radius, background: glare, ...z(1) }}
-      />
-    </motion.div>
+    </div>
   )
 }
 
@@ -213,7 +161,7 @@ function SealTick({ f, className = 'h-6 w-6' }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
       className={`shrink-0 ${className}`}
-      style={{ filter: `drop-shadow(0 4px 8px rgba(${f.rgb},0.55)) drop-shadow(0 0 6px rgba(${f.lite},0.35))` }}
+      style={{ filter: `drop-shadow(0 3px 5px rgba(${f.rgb},0.5))` }}
     >
       <defs>
         <linearGradient id={`${id}g`} x1="0" y1="0" x2="1" y2="1">{metalStops(f)}</linearGradient>
@@ -243,7 +191,7 @@ function MetalIcon({ f, name, size }) {
       <PackageIcon
         name={name}
         size={size}
-        style={{ fill: `url(#${id})`, filter: `drop-shadow(0 2px 6px rgba(${f.rgb},0.6)) drop-shadow(0 0 10px rgba(${f.lite},0.35))` }}
+        style={{ fill: `url(#${id})`, filter: `drop-shadow(0 2px 6px rgba(${f.rgb},0.6))` }}
       />
     </>
   )
@@ -264,7 +212,7 @@ function MetalWell({ f, name, size, className }) {
   )
 }
 
-// Fine metal rings swirling behind a card, spilling past its edges
+// Fine metal rings behind a card, spilling past its edges (static)
 function Swirl({ f, className = 'left-[-16%] top-[-7%] h-[114%] w-[132%]', strength = 1 }) {
   const id = useSvgId('sw')
   return (
@@ -272,7 +220,7 @@ function Swirl({ f, className = 'left-[-16%] top-[-7%] h-[114%] w-[132%]', stren
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">{metalStops(f)}</linearGradient>
       </defs>
-      <g className="pkg-swirl">
+      <g>
         {Array.from({ length: 10 }, (_, i) => (
           <ellipse
             key={i}
@@ -291,11 +239,11 @@ function Swirl({ f, className = 'left-[-16%] top-[-7%] h-[114%] w-[132%]', stren
   )
 }
 
-// A soft glow and the swirl, behind a card
+// A soft glow (a plain gradient, no blur filter) and the swirl, behind a card
 function Aura({ f, swirl, strength }) {
   return (
     <>
-      <span className="absolute -inset-10 rounded-[60px] blur-3xl" style={{ background: `radial-gradient(closest-side, rgba(${f.rgb},${0.5 * strength}), rgba(${f.warm},${0.2 * strength}) 60%, transparent)` }} />
+      <span className="absolute -inset-10 rounded-[60px]" style={{ background: `radial-gradient(closest-side, rgba(${f.rgb},${0.5 * strength}), rgba(${f.warm},${0.2 * strength}) 60%, transparent)` }} />
       <Swirl f={f} className={swirl} strength={strength} />
     </>
   )
@@ -310,12 +258,10 @@ function Swoosh({ f, className = 'mt-1.5 h-2.5 w-[62%] max-w-[210px]' }) {
   )
 }
 
-// A metal line running round the edge (rounded like its parent)
+// A metal line round the edge (rounded like its parent) — static, no spinning ring
 function MetalRim({ f }) {
   return (
-    <div aria-hidden="true" className="pkg-rim pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-      <span className="pkg-ring absolute left-1/2 top-1/2 aspect-square h-[170%] -translate-x-1/2 -translate-y-1/2" style={{ background: ringFor(f) }} />
-    </div>
+    <div aria-hidden="true" className="pkg-rim pointer-events-none absolute inset-0 rounded-[inherit]" style={{ background: ringFor(f) }} />
   )
 }
 
@@ -324,7 +270,7 @@ function PlanCard({ plan: p, card, index, open }) {
   const f = FINISH[card.finish]
 
   return (
-    <Tilt3D radius={R} edge={f ? `linear-gradient(160deg, rgba(${f.rgb},0.16), rgba(${f.warm},0.1))` : `linear-gradient(160deg, rgba(255,255,255,0.09), rgba(${rgb},0.08))`} className="flex flex-1 flex-col">
+    <Card radius={R} className="flex flex-1 flex-col">
       {/* Face: a pane of liquid glass with an accent glow in the top corner — or, with a finish, dark metal with a fine rim.
           Decoration only, so it never takes taps from the content floating above it. */}
       {f ? (
@@ -344,8 +290,8 @@ function PlanCard({ plan: p, card, index, open }) {
       )}
 
       {/* Content, floating at different depths */}
-      <div className="relative flex h-full flex-col p-6 max-[640px]:p-5" style={{ transformStyle: 'preserve-3d' }}>
-        <div className="relative flex items-center gap-3" style={z(23)}>
+      <div className="relative flex h-full flex-col p-6 max-[640px]:p-5">
+        <div className="relative flex items-center gap-3">
           {f ? (
             <MetalWell f={f} name={p.icon} size={19} className="h-11 w-11" />
           ) : (
@@ -360,16 +306,16 @@ function PlanCard({ plan: p, card, index, open }) {
         </div>
 
         {SHOW_PRICES && (
-          <p className="relative mt-5 border-t border-white/[0.08] pt-4 font-[family-name:var(--font-display)] text-[clamp(1.9rem,2.6vw,2.2rem)] font-[800] leading-none tracking-[-0.035em] text-white" style={z(18)}>
+          <p className="relative mt-5 border-t border-white/[0.08] pt-4 font-[family-name:var(--font-display)] text-[clamp(1.9rem,2.6vw,2.2rem)] font-[800] leading-none tracking-[-0.035em] text-white">
             {inr(p.fee)}
             <span className="ml-1.5 text-[14px] font-semibold tracking-normal text-white/50">/ month</span>
           </p>
         )}
 
-        <BestFor text={p.bestFor} hex={hex} rgb={rgb} style={z(15)} />
-        <Highlights items={p.highlights} mark={f ? <SealTick f={f} className="h-5 w-5" /> : TICK} style={z(9)} className="mt-5 flex flex-col" />
+        <BestFor text={p.bestFor} hex={hex} rgb={rgb} />
+        <Highlights items={p.highlights} mark={f ? <SealTick f={f} className="h-5 w-5" /> : TICK} className="mt-5 flex flex-col" />
 
-        <div className="relative mt-auto flex flex-wrap gap-2.5 pt-6" style={z(20)}>
+        <div className="relative mt-auto flex flex-wrap gap-2.5 pt-6">
           <a
             href={p.demo || whatsappLink(packageMessage(p))}
             target="_blank"
@@ -391,7 +337,7 @@ function PlanCard({ plan: p, card, index, open }) {
           </button>
         </div>
       </div>
-    </Tilt3D>
+    </Card>
   )
 }
 
@@ -408,7 +354,7 @@ function PackageGroup({ card, open }) {
         </div>
       )}
 
-      {/* A larger, fainter pane of glass holding the two cards — with a finish, darker metal with a moving rim */}
+      {/* A larger, fainter pane of glass holding the two cards — with a finish, darker metal with a fine rim */}
       <div
         className={`relative flex h-full flex-col rounded-[36px] p-3 max-[640px]:rounded-[32px] max-[640px]:p-2.5 ${f ? '' : 'lg'}`}
         style={
@@ -462,9 +408,9 @@ function PremiumCard({ card, open }) {
 
   return (
     <li className="h-full pt-4 min-[700px]:col-span-2 min-[1024px]:col-span-1 min-[1024px]:pt-0">
-      <Tilt3D radius={34} max={7} perspective={2400} edge={`linear-gradient(160deg, rgba(${f.rgb},0.2), rgba(${f.warm},0.12))`} className="flex h-full flex-col">
+      <Card radius={34} className="flex h-full flex-col">
         {/* Behind the card: a warm glow and the swirl */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={z(-40)}>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <Aura f={f} strength={f.aura} />
         </div>
 
@@ -485,8 +431,8 @@ function PremiumCard({ card, open }) {
           <MetalRim f={f} />
         </div>
 
-        <div className="relative flex h-full flex-col p-7 max-[640px]:p-5" style={{ transformStyle: 'preserve-3d' }}>
-          <div className="relative flex items-center gap-4" style={z(28)}>
+        <div className="relative flex h-full flex-col p-7 max-[640px]:p-5">
+          <div className="relative flex items-center gap-4">
             <MetalWell f={f} name={card.icon} size={28} className="h-16 w-16" />
             <div className="min-w-0 flex-1">
               <h2 className="font-[family-name:var(--font-display)] text-[clamp(1.7rem,2.4vw,2.1rem)] font-[800] leading-[1.08] tracking-[-0.035em] text-balance" style={metalText(f)}>
@@ -496,34 +442,34 @@ function PremiumCard({ card, open }) {
             </div>
           </div>
 
-          <p className="relative mt-4 text-[13.5px] text-white/60" style={z(24)}>{p.bestFor}</p>
+          <p className="relative mt-4 text-[13.5px] text-white/60">{p.bestFor}</p>
 
           <div
             className="relative mt-6 flex items-center gap-3 rounded-[20px] py-3.5 pl-4 pr-4"
-            style={{ background: `linear-gradient(120deg, rgba(${f.rgb},0.14), rgba(${f.warm},0.06))`, boxShadow: `inset 0 0 0 1px rgba(${f.rgb},0.32), inset 0 1px 0 rgba(${f.lite},0.18)`, ...z(20) }}
+            style={{ background: `linear-gradient(120deg, rgba(${f.rgb},0.14), rgba(${f.warm},0.06))`, boxShadow: `inset 0 0 0 1px rgba(${f.rgb},0.32), inset 0 1px 0 rgba(${f.lite},0.18)` }}
           >
             <SealTick f={f} className="h-7 w-7" />
             <span className="font-[family-name:var(--font-display)] text-[16px] font-[800] leading-[1.25] text-white">{p.guarantee}</span>
           </div>
 
           {SHOW_PRICES && (
-            <p className="relative mt-6 border-t pt-5 font-[family-name:var(--font-display)] text-[clamp(2.1rem,3vw,2.6rem)] font-[800] leading-none tracking-[-0.035em] text-white" style={{ borderColor: `rgba(${f.rgb},0.14)`, ...z(18) }}>
+            <p className="relative mt-6 border-t pt-5 font-[family-name:var(--font-display)] text-[clamp(2.1rem,3vw,2.6rem)] font-[800] leading-none tracking-[-0.035em] text-white" style={{ borderColor: `rgba(${f.rgb},0.14)` }}>
               {inr(p.fee)}
               <span className="ml-1.5 text-[14px] font-semibold tracking-normal text-white/50">/ month</span>
             </p>
           )}
 
-          <p className="relative mt-5 text-[14.5px] leading-[1.6] text-white/70" style={z(10)}>{p.headline}</p>
+          <p className="relative mt-5 text-[14.5px] leading-[1.6] text-white/70">{p.headline}</p>
 
-          <p className="relative mt-6 border-t pt-5 text-[10.5px] font-bold uppercase tracking-[0.24em]" style={{ color: hex, borderColor: `rgba(${f.rgb},0.14)`, ...z(10) }}>Everything included</p>
+          <p className="relative mt-6 border-t pt-5 text-[10.5px] font-bold uppercase tracking-[0.24em]" style={{ color: hex, borderColor: `rgba(${f.rgb},0.14)` }}>Everything included</p>
           <Highlights
             items={p.highlights}
             mark={<SealTick f={f} />}
-            style={z(9)}
+           
             className="relative mt-4 grid grid-cols-1 gap-x-5 gap-y-3.5 min-[480px]:grid-cols-2 min-[1024px]:grid-cols-1" />
-          {p.footnote && <p className="relative mt-5 text-[11.5px] leading-[1.5] text-white/45" style={z(5)}>{p.footnote}</p>}
+          {p.footnote && <p className="relative mt-5 text-[11.5px] leading-[1.5] text-white/45">{p.footnote}</p>}
 
-          <div className="relative mt-auto flex flex-col gap-2.5 pt-8" style={z(23)}>
+          <div className="relative mt-auto flex flex-col gap-2.5 pt-8">
             <a
               href={whatsappLink(packageMessage(p))}
               target="_blank"
@@ -545,7 +491,7 @@ function PremiumCard({ card, open }) {
             </button>
           </div>
         </div>
-      </Tilt3D>
+      </Card>
     </li>
   )
 }
@@ -553,8 +499,8 @@ function PremiumCard({ card, open }) {
 /* ── Page ───────────────────────────────────────────────────────── */
 
 // Opening or switching the drawer only changes `openId`. The cards get a
-// fixed card and the stable setter, so they skip re-rendering — they're 3D
-// slabs full of springs, and redoing them made the drawer slow to open.
+// fixed card and the stable setter, so they skip re-rendering and the
+// drawer opens without redoing every card.
 const Group = memo(PackageGroup)
 const Premium = memo(PremiumCard)
 

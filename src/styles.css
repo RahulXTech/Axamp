@@ -1056,30 +1056,9 @@
 
 /* ── Package cards (pages/Packages.jsx) ─────────────────────── */
 
-/* Gold ring running round the Top 1% card (the 3D tilt is Framer Motion) */
-.pkg-ring { animation: pkg-ring 8s linear infinite; }
-@keyframes pkg-ring { to { rotate: 360deg; } }
-
-/* Golden rings behind the Top 1% card, slowly turning and breathing */
-.pkg-swirl {
-  transform-box: view-box;
-  transform-origin: 50% 50%;
-  animation: pkg-swirl 18s ease-in-out infinite alternate;
-}
-@keyframes pkg-swirl {
-  from { transform: rotate(-8deg) scale(0.96); opacity: 0.75; }
-  to   { transform: rotate(10deg) scale(1.04); opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pkg-ring, .pkg-swirl { animation: none; }
-}
-
-/* Paused while the package drawer covers the page: the swirl is SVG, so each
-   frame was repainted and re-layered on the main thread under the drawer,
-   making it janky to scroll. They pick up where they left off on close. */
-html.is-locked .pkg-ring,
-html.is-locked .pkg-swirl { animation-play-state: paused; }
+/* The cards are flat and static (4 Nov 2026): the spinning rim, the moving
+   swirl and the 3D tilt were removed so the page runs smoothly on low-end
+   phones, tablets and laptops. */
 
 /* Liquid glass. No backdrop-filter: it breaks inside the 3D tilt and is costly
    on iPhone, so the frost is painted instead — a milky fill, a curved sheen from

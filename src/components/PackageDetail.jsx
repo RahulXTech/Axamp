@@ -205,7 +205,7 @@ export default function PackageDetail({ id, onChange, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={`${p.name} — full details`}>
-      <button type="button" aria-label="Close" onClick={onClose} className="svc-fade absolute inset-0 bg-[rgba(3,6,18,0.75)] backdrop-blur-sm" />
+      <button type="button" aria-label="Close" onClick={onClose} className="svc-fade absolute inset-0 bg-[rgba(3,6,18,0.85)]" />
 
       <div
         ref={panelRef}
@@ -660,7 +660,7 @@ export default function PackageDetail({ id, onChange, onClose }) {
             href={whatsappLink(packageMessage(p))}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-12 flex-1 items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-[#25d366] px-5 font-[family-name:var(--font-display)] text-[14.5px] font-[700] text-[#062b14] shadow-[0_0_30px_-8px_rgba(37,211,102,0.85)] transition-transform duration-300 hover:-translate-y-0.5 max-[359px]:gap-2 max-[359px]:px-3 max-[359px]:text-[13.5px] min-[640px]:flex-none"
+            className="inline-flex h-12 flex-1 items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-[#25d366] px-5 font-[family-name:var(--font-display)] text-[14.5px] font-[700] text-[#062b14] shadow-[0_0_30px_-8px_rgba(37,211,102,0.85)] transition-transform duration-300 hover:-translate-y-0.5 max-[400px]:gap-2 max-[400px]:px-4 max-[400px]:text-[14px] max-[359px]:gap-1.5 max-[359px]:px-2.5 max-[359px]:text-[13.5px] min-[640px]:flex-none"
           >
             <WhatsAppIcon size={18} />
             Get This Package
@@ -672,7 +672,7 @@ export default function PackageDetail({ id, onChange, onClose }) {
               onClose()
               go('/contact')
             }}
-            className="inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/15 px-5 text-[14px] font-semibold text-white transition-colors hover:border-white/35 max-[420px]:px-4 max-[359px]:px-3 max-[359px]:text-[13px]"
+            className="inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/15 px-5 text-[14px] font-semibold text-white transition-colors hover:border-white/35 max-[420px]:px-4 max-[400px]:px-3.5 max-[400px]:text-[13.5px] max-[359px]:px-3 max-[359px]:text-[13px]"
           >
             Ask a Question
           </a>
