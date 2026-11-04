@@ -24,7 +24,8 @@ export default function VideoCard({ reel, near, playing, active }) {
   // (Phones also cap how many reels load at once — see useVideoSlot.)
   const showMp4 = useVideoSlot(active && playing && hasMp4 === true)
   const showIg  = near && hasMp4 === false && reel.type === 'instagram' && !reel.image
-  const showYt  = shouldPlay && reel.type === 'youtube' && !reel.video
+  // YouTube players are heavy — only the front card mounts one; the rest show their poster
+  const showYt  = active && shouldPlay && reel.type === 'youtube' && !reel.video
 
   const mediaRef = useRef(null)
 

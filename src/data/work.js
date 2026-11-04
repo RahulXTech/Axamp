@@ -24,8 +24,8 @@
 //
 // 7 Oct 2026 — Project Details (pd-*.mp4), Site Visit (sv-*.mp4, nine)
 // and Informative (in-*.mp4, seven) have their own official edits in place
-// of the shared eight. 16 Oct 2026 — Project Details is now six Wave One
-// reels plus the two pd-*.mp4 edits that remain.
+// of the shared eight. 4 Nov 2026 — Project Details is now seven YouTube
+// Shorts streamed from YouTube; its MP4s were deleted to lighten the site.
 
 import { reelById } from './reels'
 import { site } from './site'
@@ -41,6 +41,17 @@ const V = {
   yeida: { file: 'erm-yeida-growth', caption: 'Noida vs YEIDA — prices, Film City and the airport story' },
   gurgaonNoida: { file: 'gurgaon-vs-noida', caption: 'Gurugram vs Noida — which city is built to live in?' },
 }
+
+// A YouTube Short streamed from YouTube (nothing hosted here but its
+// /posters/<id>.jpg still), credited to the channel that posted it
+const ytShort = (id, caption, channel, name) => ({
+  youtube: id,
+  short: true,
+  caption,
+  handle: `@${channel}`,
+  name,
+  profile: `https://www.youtube.com/@${channel}`,
+})
 
 export const pillars = [
   {
@@ -68,17 +79,17 @@ export const pillars = [
     icon: 'building',
     objection: 'Is this actually being built?',
     answer: 'Answered on a site walkthrough.',
-    // Project Details (16 Oct 2026) — six Wave One reels hosted in /videos
-    // and /posters, then the two AXAMP edits kept from the 7 Oct set
+    // Project Details (4 Nov 2026) — YouTube Shorts, streamed from YouTube
+    // (no MP4s in /videos). Covers are small stills in /posters/<id>.jpg;
+    // the first one is the pillar's cover in the "Six kinds of proof" strip.
     reels: [
-      { ig: 'https://www.instagram.com/p/Da0tRfPveuZ/', caption: 'Wave One Club — the hidden gem in the middle of Noida' },
-      { ig: 'https://www.instagram.com/p/DbeAL9po0pj/', caption: 'Wave One Club — hidden on the 15th floor in Noida' },
-      { ig: 'https://www.instagram.com/p/Da_AzVkvlJZ/', caption: 'Wave One Club — a hidden gem in the middle of Noida, walked through' },
-      { ig: 'https://www.instagram.com/p/DdUXRByzY2p/', caption: 'Wave One Club — the hidden floor on the 15th' },
-      { ig: 'https://www.instagram.com/p/DeH3iS-zxSh/', caption: 'Wave One Club — lifetime membership at Noida’s hidden gem' },
-      { ig: 'https://www.instagram.com/p/Dc_xg4oySsD/', caption: 'Wave One Mall — the project from the air' },
-      { file: 'pd-society-house-tour', caption: 'Society house tour — the home, the lawns and the towers around it' },
-      { file: 'pd-society-patta-plot', caption: '266.66 gaj society patta plot — walked from the main road' },
+      ytShort('G-xHxhe3nVc', 'Why channel partners must educate homebuyers', 'engineershorizon7656', 'Engineers Horizon'),
+      ytShort('PlCyHS6BgL8', 'The crucial role of channel partners', 'vipinsuri13', 'Vipin Suri'),
+      ytShort('ssvYWsFw79o', 'Real estate truth: why you need a channel partner', 'Trpspodcast', 'TRPS — Trending Realestate Property Show'),
+      ytShort('35KksBTfN-Y', 'Who should consider a career in real estate? — Bhaswar Paul', 'vipinsuri13', 'Vipin Suri'),
+      ytShort('7Q1mlgycuJ8', 'NoBroker’s innovative approach to real estate', 'OddPlus6334', 'Oddplus'),
+      ytShort('Gins0uHKsYw', 'Risk-free work in real estate? Start with rental property broking', 'VinodSaini-skybyte', 'Vinod Saini'),
+      ytShort('8yaFsRgHQNc', 'Lights, camera, real estate — the podcast behind the scenes', 'realtynmore', 'Realty & More'),
     ],
   },
   {
@@ -155,11 +166,11 @@ export function resolveReel(reel, section) {
    * public thumbnail endpoint which works without auth.
    */
   const localPoster =
-    reel.poster ?? info?.cover ?? (reel.file ? `/posters/${id}.webp` : reel.ig ? `/posters/${id}.jpg` : null)
+    reel.poster ?? info?.cover ?? (reel.file ? `/posters/${id}.webp` : reel.ig || reel.short ? `/posters/${id}.jpg` : null)
   const remotePoster = reel.ig
     ? `https://www.instagram.com/p/${id}/media/?size=l`
     : reel.youtube
-      ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
+      ? `https://i.ytimg.com/vi/${id}/${reel.short ? 'oar2' : 'maxresdefault'}.jpg`
       : null
 
   return {
@@ -168,7 +179,10 @@ export function resolveReel(reel, section) {
     image: !!reel.image, // photo post — shown as an image, never as video
     id,
     // Our own videos have no post of their own — link to AXAMP's profile
-    url: reel.ig ?? (reel.file ? site.instagram : `https://www.youtube.com/watch?v=${reel.youtube}`),
+    url: reel.ig ?? (reel.file
+      ? site.instagram
+      : reel.short ? `https://www.youtube.com/shorts/${reel.youtube}` : `https://www.youtube.com/watch?v=${reel.youtube}`),
+    short: !!reel.short, // vertical YouTube Short — post view, not the wide frame
     video: reel.image ? null : (reel.video ?? (reel.ig || reel.file ? `/videos/${id}.mp4` : null)),
 
     /* Card tries `poster` first, then `posterFallback`. */

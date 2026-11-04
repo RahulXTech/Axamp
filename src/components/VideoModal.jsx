@@ -111,8 +111,8 @@ function ModalBody({ reel, close }) {
     )
   }
 
-  // Self-hosted YouTube Shorts are vertical: they use the post view
-  const isWide = reel.type === 'youtube' && !reel.video
+  // YouTube Shorts (self-hosted or streamed) are vertical: they use the post view
+  const isWide = reel.type === 'youtube' && !reel.video && !reel.short
   const glow = reel.warm
     ? 'border-[rgba(255,122,80,0.40)] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.80),0_0_80px_-20px_rgba(255,122,80,0.40)]'
     : 'border-[rgba(83,247,251,0.35)] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.80),0_0_80px_-20px_rgba(83,247,251,0.35)]'
@@ -192,7 +192,7 @@ function ModalBody({ reel, close }) {
                 relative shrink-0 bg-black
                 w-full ${reel.image ? 'aspect-[3/4]' : 'aspect-[9/16]'}
                 lg:w-auto lg:h-[min(84svh,860px)]
-                ${hasMp4 === false && !reel.image ? 'max-lg:aspect-auto max-lg:h-[min(78svh,720px)] lg:aspect-[400/720]' : ''}
+                ${hasMp4 === false && !reel.image && !reel.short ? 'max-lg:aspect-auto max-lg:h-[min(78svh,720px)] lg:aspect-[400/720]' : ''}
               `}
             >
               {player}

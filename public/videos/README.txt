@@ -11,16 +11,9 @@ except Project Details, Site Visit and Informative shows all eight, its most rel
   aditya-rosemont.mp4          Rosemont Residency sales visit
   gurgaon-vs-noida.mp4         Gurugram vs Noida explainer
 
-Project Details pillar (16 Oct 2026), in pillar order (first is the cover):
-
-  Da0tRfPveuZ.mp4             Wave One Club — hidden gem of Noida
-  DbeAL9po0pj.mp4             Wave One Club — hidden on the 15th floor
-  Da_AzVkvlJZ.mp4             Wave One Club — hidden gem, walked through
-  DdUXRByzY2p.mp4             Wave One Club — hidden floor
-  DeH3iS-zxSh.mp4             Wave One Club — lifetime membership
-  Dc_xg4oySsD.mp4             Wave One Mall — aerial
-  pd-society-house-tour.mp4   Society house tour
-  pd-society-patta-plot.mp4   266.66 gaj society patta plot
+Project Details pillar (4 Nov 2026): no files here. It streams seven
+YouTube Shorts from YouTube (src/data/work.js); only their small cover
+stills live in /public/posters/<YouTubeID>.jpg.
 
 Site Visit pillar only — AXAMP's official edits (7 Oct 2026), in pillar order:
 
