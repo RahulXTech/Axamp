@@ -16,6 +16,46 @@ export function useMediaQuery(query) {
 export const useIsCarousel = () =>
   useMediaQuery('(max-width: 900px), (pointer: coarse)')
 
+/* Pauses the CSS animations of every section that's off screen (the
+ * `[data-offscreen]` rule in styles.css). On the home page dozens of looping
+ * animations — flow lines, sheens, pulses, the closing border — kept running
+ * in sections nobody could see, and each made the browser recompute styles
+ * every frame; on a slow phone that was the largest cost while scrolling.
+ * Watches the page's `<section>`s (inside <main>, plus the footer), including
+ * ones added later (deferred sections, an industry switch). */
+export function usePauseOffscreen() {
+  useEffect(() => {
+    const root = document.querySelector('main')
+    if (!root) return
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.target.toggleAttribute('data-offscreen', !e.isIntersecting)),
+      { rootMargin: '10% 0px' },
+    )
+    const watched = new Set()
+    const scan = () => {
+      frame = 0
+      for (const el of [...root.querySelectorAll('section'), document.querySelector('footer')]) {
+        if (el && !watched.has(el)) {
+          watched.add(el)
+          io.observe(el)
+        }
+      }
+    }
+    let frame = 0
+    const mo = new MutationObserver(() => {
+      if (!frame) frame = requestAnimationFrame(scan)
+    })
+    mo.observe(root, { childList: true, subtree: true })
+    scan()
+    return () => {
+      cancelAnimationFrame(frame)
+      mo.disconnect()
+      io.disconnect()
+      watched.forEach((el) => el.removeAttribute('data-offscreen'))
+    }
+  }, [])
+}
+
 export function useInView(ref, rootMargin = '0px') {
   const [inView, setInView] = useState(false)
   useEffect(() => {
@@ -75,11 +115,15 @@ export function useVideoSlot(wants) {
 
 // Checks (once per URL) whether a self-hosted MP4 exists. Content-type is
 // checked because SPA hosts answer missing files with index.html + 200.
+// `enabled` false holds the check back (answer stays null) until the video
+// could actually play — a page of reel rings used to send one request per
+// card on load. A known answer is kept when it turns false again.
 const probes = new Map()
-export function useVideoAvailable(url) {
+export function useVideoAvailable(url, enabled = true) {
   const [ok, setOk] = useState(null)
   useEffect(() => {
     if (!url) return setOk(false)
+    if (!enabled) return
     let alive = true
     if (!probes.has(url)) {
       probes.set(
@@ -91,6 +135,6 @@ export function useVideoAvailable(url) {
     }
     probes.get(url).then((v) => alive && setOk(v))
     return () => { alive = false }
-  }, [url])
+  }, [url, enabled])
   return ok
 }

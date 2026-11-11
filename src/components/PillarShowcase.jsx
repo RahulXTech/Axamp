@@ -58,7 +58,8 @@ export default function PillarShowcase({ pillar, index, inView, stacked }) {
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          section.style.setProperty('--p', self.progress) // IntroPanel strike + answer
+          // On the intro only: --p is inherited, so on the section it restyled the whole stage each scroll frame
+          introRef.current?.style.setProperty('--p', self.progress) // IntroPanel strike + answer
           if (progressRef.current) progressRef.current.style.transform = `scaleX(${self.progress})`
         },
       })

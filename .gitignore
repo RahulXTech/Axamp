@@ -22,3 +22,6 @@ src/components/*.mp4
 public/api/config.php
 
 
+
+# Hostinger upload zip (holds the API key)
+axamp-hostinger.zip

@@ -834,6 +834,14 @@
   60%, 100% { background-position: 0% 0; }
 }
 
+/* Sections off screen (usePauseOffscreen in lib/hooks.js, home page):
+   their CSS animations hold still, and pick up where they left off when the
+   section comes back. Off-screen loops made the browser recompute styles
+   every frame. */
+[data-offscreen] *,
+[data-offscreen] *::before,
+[data-offscreen] *::after { animation-play-state: paused !important; }
+
 /* Report: "Get the solution to this loss" — a slow glow pulse, a light
    sweeping across now and then, and the arrow nudging forward */
 .sol-cta {

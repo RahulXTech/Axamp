@@ -80,8 +80,6 @@ function resultLines(picks, drops, r) {
     `Total Site Visits: ${num(r.siteVisits)}${plus}${r.visitBoost > 1 ? ` (${boostNote(r)})` : ''}`,
     `Cost Per Visit: ${r.costPerVisit ? inr(r.costPerVisit) : '—'}`,
     `Total Loss: ${from}${inr(r.moneyLoss)} a month (${num(r.leadLoss)}${plus} leads lost)`,
-    '',
-    `Suggested package: ${r.plan.name} (${inr(r.plan.fee)} + GST a month)`,
   ]
 }
 
@@ -479,7 +477,6 @@ function JourneyCard({ r, solutionHref }) {
                 />
               </div>
             </div>
-
             {/* Phones: the promise sits right beside the bracket (wide screens have it in the panel) */}
             <motion.div
               style={{ gridRow: `${row(0)} / ${row(visit) + 1}`, gridColumn: 4 }}
@@ -556,7 +553,6 @@ function JourneyCard({ r, solutionHref }) {
               </span>
               <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(83,247,251,0.5),transparent)]" />
             </div>
-
             <div className="relative flex items-center gap-5 max-[959px]:hidden">
               <div className="relative grid h-[124px] w-[124px] shrink-0 min-[960px]:h-[156px] min-[960px]:w-[156px] place-items-center">
                 <svg viewBox="0 0 124 124" className="absolute inset-0 -rotate-90" aria-hidden="true">

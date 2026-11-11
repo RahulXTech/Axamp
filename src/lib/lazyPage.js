@@ -20,21 +20,24 @@ const storage = {
   },
 }
 
-export function lazyPage(load) {
-  const Page = lazy(() =>
-    load().then(
-      (mod) => {
-        storage.set(null)
-        return mod
-      },
-      (err) => {
-        if (storage.get()) throw err
-        storage.set('1')
-        window.location.reload()
-        return new Promise(() => {}) // stay on the fallback until the reload happens
-      },
-    ),
+// Fetches a code chunk, with that reload-once fix (also used by Deferred.jsx)
+export function loadChunk(load) {
+  return load().then(
+    (mod) => {
+      storage.set(null)
+      return mod
+    },
+    (err) => {
+      if (storage.get()) throw err
+      storage.set('1')
+      window.location.reload()
+      return new Promise(() => {}) // stay on the fallback until the reload happens
+    },
   )
+}
+
+export function lazyPage(load) {
+  const Page = lazy(() => loadChunk(load))
   // Lets the app fetch the page ahead of time (see App.jsx)
   Page.preload = load
   return Page

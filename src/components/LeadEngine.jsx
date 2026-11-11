@@ -31,7 +31,7 @@ import { clientReels, compact } from '../data/reels'
 import { pillars, resolveReel } from '../data/work'
 import { useIndustry } from '../lib/industry'
 import { useMediaQuery } from '../lib/hooks'
-import { scrollToTarget } from '../lib/scroll'
+import { requestScrollRefresh, scrollToTarget } from '../lib/scroll'
 import { PillarIcon } from './icons'
 import { FlowLines, GoogleG, Orb, ProofDemoButton, Shell, SourceCard, StepCard, StepLabel, makeDraw, pad, useFlowPaths } from './LeadEngineParts'
 import { ADMIT_LINKS, AdmissionDiagram, COPY, admitTimeline } from './LeadEngineAdmission'
@@ -607,10 +607,8 @@ function Engine({ flow: { links, timeline, Diagram, MobileDiagram, goal, sub } }
   const flow = useFlowPaths(diagramRef, isDesktop, links)
 
   // A new flow changes the page height — re-measure everything below
-  useEffect(() => {
-    const id = requestAnimationFrame(() => ScrollTrigger.refresh())
-    return () => cancelAnimationFrame(id)
-  }, [])
+  // (shared with any other re-measure asked for in the same frame)
+  useEffect(() => requestScrollRefresh(), [])
 
   useGSAP(
     () => {

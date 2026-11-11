@@ -1,16 +1,22 @@
 import { Suspense, useEffect, useRef } from 'react'
 import { useIndustry } from '../lib/industry'
 import { initSlides } from '../lib/slide'
+import { usePauseOffscreen } from '../lib/hooks'
 import Hero from '../components/Hero'
 import LeadLeak from '../components/LeadLeak'
 import ProcessStrip from '../components/ProcessStrip'
 import AnswerFirst from '../components/AnswerFirst'
 import Pillar from '../components/Pillar'
-import Performance from '../components/Performance'
-import LeadEngine from '../components/LeadEngine'
 import SectionRail from '../components/SectionRail'
 import { Closing } from '../components/Closing'
 import IndustryDock from '../components/IndustryDock'
+import Deferred from '../components/Deferred'
+
+// Far-down sections whose code is fetched only when they're about to be
+// built (Deferred.jsx). Closing stays in the first download: the footer on
+// every page comes from the same file.
+const loadPerformance = () => import('../components/Performance')
+const loadLeadEngine = () => import('../components/LeadEngine')
 
 /*
  * Everything that depends on the hero switcher (Real Estate / Hospital …):
@@ -30,7 +36,7 @@ function IndustryProof() {
 
   return (
     <div ref={ref} key={config.key} data-slide-root>
-      {/* Where a realtor's 100 leads go — real estate only (also its own page: /lead-leak) */}
+      {/* Where a realtor's 100 leads go — real estate only */}
       {config.key === 'real-estate' && <LeadLeak />}
       <ProcessStrip pillars={pillars} eyebrow={config.stripEyebrow} title={config.stripTitle} />
       <AnswerFirst pillars={pillars} />
@@ -43,6 +49,9 @@ function IndustryProof() {
 }
 // Home — hero, the proof for the chosen industry, ads, leads, contact
 export default function Home() {
+  // Looping CSS animations in sections off screen hold still (lib/hooks.js)
+  usePauseOffscreen()
+
   return (
     <>
       <Hero />
@@ -51,9 +60,12 @@ export default function Home() {
       <Suspense fallback={<div className="min-h-[100svh]" />}>
         <IndustryProof />
       </Suspense>
-      <Performance />
-      <LeadEngine />
-      <Closing />
+      {/* Far below the first screen: downloaded and built just after load,
+          not in the first render — see Deferred.jsx (the first render used
+          to block a slow phone for ~5 s) */}
+      <Deferred load={loadPerformance} />
+      <Deferred load={loadLeadEngine} />
+      <Deferred><Closing /></Deferred>
       {/* Switch industry (or WhatsApp us) from anywhere on the page */}
       <IndustryDock />
     </>

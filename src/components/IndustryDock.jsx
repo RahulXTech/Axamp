@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Building2, ClipboardCheck, GraduationCap, UserRound } from 'lucide-react'
 import { useIndustry } from '../lib/industry'
 import { useGo } from '../lib/nav'
-import { scrollToTarget } from '../lib/scroll'
+import { getScrollY, scrollToTarget } from '../lib/scroll'
 import { services } from '../data/services'
 import { industryWhatsappMessage, whatsappLink } from '../data/site'
 import { WhatsAppIcon } from './icons'
@@ -191,30 +191,50 @@ export default function IndustryDock() {
   )
 }
 
-/* Visible between the hero and the contact section */
+/* Visible between the hero and the contact section. Past the hero comes from
+ * the shared scroll value; the contact section is watched by an
+ * IntersectionObserver (its top above 85% of the screen = reached). This used
+ * to measure the contact section on every scrolled frame, forcing a layout. */
 function useDockVisible() {
   const [visible, setVisible] = useState(false)
+  // The contact section is built a moment after load (Deferred.jsx): watch it once it's there
+  const [built, setBuilt] = useState(0)
   useEffect(() => {
-    let frame = 0
-    const check = () => {
-      frame = 0
-      const vh = window.innerHeight
-      const contact = document.getElementById('contact')?.getBoundingClientRect()
-      const pastHero = window.scrollY > vh * 0.6
-      const beforeContact = !contact || contact.top > vh * 0.85
-      setVisible(pastHero && beforeContact)
-    }
+    const on = () => setBuilt((n) => n + 1)
+    window.addEventListener('axamp:sections-built', on)
+    return () => window.removeEventListener('axamp:sections-built', on)
+  }, [])
+  useEffect(() => {
+    let pastHero = false
+    let beforeContact = true
+    const update = () => setVisible(pastHero && beforeContact)
     const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(check)
+      const past = getScrollY() > window.innerHeight * 0.6
+      if (past !== pastHero) {
+        pastHero = past
+        update()
+      }
     }
-    check()
+    const contact = document.getElementById('contact')
+    const io = contact &&
+      new IntersectionObserver(
+        ([e]) => {
+          // Not on screen: still ahead (below) or already passed (above)?
+          beforeContact = !e.isIntersecting && e.boundingClientRect.top > 0
+          update()
+        },
+        { rootMargin: '0px 0px -15% 0px' },
+      )
+    io?.observe(contact)
+    onScroll()
+    update()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
     return () => {
-      cancelAnimationFrame(frame)
+      io?.disconnect()
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [])
+  }, [built])
   return visible
 }

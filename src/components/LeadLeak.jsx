@@ -458,9 +458,7 @@ function FunnelChart({ step, onPick }) {
   )
 }
 
-// `standalone`: the section is its own page (/lead-leak), not pinned under the
-// home page's proof strip — no pin or dimming, no rounded top edge.
-export default function LeadLeak({ standalone = false }) {
+export default function LeadLeak() {
   const ref = useRef(null)
   const contentRef = useRef(null)
   const goTo = useGo()
@@ -478,7 +476,6 @@ export default function LeadLeak({ standalone = false }) {
    * useGSAP's context reverts the pin and the timeline on unmount. */
   useGSAP(
     () => {
-      if (standalone) return
       const el = ref.current
       const range = {
         trigger: el,
@@ -579,15 +576,11 @@ export default function LeadLeak({ standalone = false }) {
         flex flex-col
         overflow-hidden
         bg-[var(--navy)]
-        ${standalone
-          ? 'min-h-screen min-h-[100svh] min-[1025px]:h-screen min-[1025px]:h-[100svh] min-[1025px]:min-h-[520px] max-[600px]:min-h-0 max-[600px]:pb-6'
-          : `
-          h-screen h-[100svh] min-h-[520px]
-          rounded-t-[clamp(28px,4vw,56px)]
-          border-t border-[rgba(255,107,112,0.22)]
-          shadow-[0_-40px_90px_-20px_rgba(0,0,0,0.75)]
-          max-[600px]:pb-[92px]
-        `}
+        h-screen h-[100svh] min-h-[520px]
+        rounded-t-[clamp(28px,4vw,56px)]
+        border-t border-[rgba(255,107,112,0.22)]
+        shadow-[0_-40px_90px_-20px_rgba(0,0,0,0.75)]
+        max-[600px]:pb-[92px]
         px-[var(--gutter)]
         pt-[96px]
         pb-[96px]
@@ -613,8 +606,7 @@ export default function LeadLeak({ standalone = false }) {
             alt=""
             width="1800"
             height="1200"
-            loading={standalone ? 'eager' : 'lazy'}
-            fetchPriority={standalone ? 'high' : 'auto'}
+            loading="lazy"
             decoding="async"
             className="absolute inset-x-0 top-0 h-[70%] w-full object-cover object-[50%_100%] [mask-image:linear-gradient(180deg,#000_60%,transparent)] max-[1000px]:h-[45%]"
           />
@@ -629,8 +621,8 @@ export default function LeadLeak({ standalone = false }) {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(70%_60%_at_50%_30%,#000,transparent)]" />
       </div>
 
-      {/* Dims the section as the proof strip slides over it (home page only) */}
-      {!standalone && <div ref={shadeRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-[#05091a] opacity-0" />}
+      {/* Dims the section as the proof strip slides over it */}
+      <div ref={shadeRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-[#05091a] opacity-0" />
 
       <div ref={contentRef} className="relative flex min-h-0 flex-1 items-center justify-center">
         {/* Header | panel side by side on desktop, stacked below that */}

@@ -1,5 +1,6 @@
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { requestScrollRefresh } from './scroll'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -49,9 +50,11 @@ export function initSlides(root = document) {
     })
   })
 
-  // Created after the section pins — re-order so positions account for them
+  // Created after the section pins — re-order so positions account for them.
+  // The full re-measure is shared with any other asked for in this frame
+  // (the page and its proof block each set up slides as the home page loads).
   ScrollTrigger.sort()
-  ScrollTrigger.refresh()
+  requestScrollRefresh()
 
   return () => ctx.revert()
 }

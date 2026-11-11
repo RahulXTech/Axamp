@@ -340,7 +340,7 @@ export default function ProcessStrip({ pillars, eyebrow, title }) {
   return (
     <section
       id="process"
-      className="
+      className={`
         relative
         z-10
         overflow-x-clip
@@ -349,16 +349,16 @@ export default function ProcessStrip({ pillars, eyebrow, title }) {
         rounded-t-[clamp(28px,4vw,56px)]
         border-t border-[rgba(83,247,251,0.14)]
         shadow-[0_-40px_90px_-20px_rgba(0,0,0,0.75)]
+        pt-[8vh]
+        max-[600px]:pt-12
         gap-8
         px-[var(--gutter)]
-        pt-[8vh]
         pb-[14vh]
 
         max-[900px]:gap-7
         max-[600px]:gap-5
-        max-[600px]:pt-12
         max-[600px]:pb-6
-      "
+      `}
     >
       <div
         aria-hidden="true"

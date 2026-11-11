@@ -6,6 +6,7 @@ import { useGSAP } from '@gsap/react'
 import { resolveReel } from '../data/work'
 import IntroPanel, { PillLabel } from './IntroPanel'
 import VideoCard from './VideoCard'
+import { getScrollY } from '../lib/scroll'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -64,7 +65,8 @@ export default function PillarOrbit({ pillar, index, inView, stacked }) {
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          section.style.setProperty('--p', self.progress) // IntroPanel strike + answer
+          // On the intro only: --p is inherited, so on the section it restyled the whole stage each scroll frame
+          introRef.current?.style.setProperty('--p', self.progress) // IntroPanel strike + answer
           if (progressRef.current) progressRef.current.style.transform = `scaleX(${self.progress})`
         },
       })
@@ -208,7 +210,7 @@ function ReelOrbit({ reels, inView, cardHeight, mode = 'bottom', count = SLOTS, 
       let cy = 0 // vertical shift of the orbit centre
       let rot = rotRef.current
       let vel = BASE_SPEED
-      let lastScroll = window.scrollY
+      let lastScroll = getScrollY()
       let lastFront = -1
       let hovering = false
       let focused = false
@@ -265,7 +267,7 @@ function ReelOrbit({ reels, inView, cardHeight, mode = 'bottom', count = SLOTS, 
       }
 
       const tick = (_time, deltaTime) => {
-        const y = window.scrollY
+        const y = getScrollY() // shared value: reading window.scrollY every frame forced a layout
         const scrolled = Math.min(Math.abs(y - lastScroll), 120)
         lastScroll = y
 

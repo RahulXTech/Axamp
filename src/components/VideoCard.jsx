@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Images, Play } from 'lucide-react'
 import { useModal } from '../lib/modal'
 import { useStopDownloadWhenHidden, useVideoAvailable, useVideoSlot } from '../lib/hooks'
+import { LITE, TOUCH } from '../lib/device'
 import { LogoMark } from './Logo'
 
 const IG_WIDTH = 340
@@ -11,7 +12,8 @@ const IG_WIDTH = 340
 // `active`  → this is the front card
 export default function VideoCard({ reel, near, playing, active }) {
   const { reel: openReel, open } = useModal()
-  const hasMp4 = useVideoAvailable(reel.video)
+  // Only cards at or next to the front ever play, so only they check for an MP4
+  const hasMp4 = useVideoAvailable(reel.video, near || active)
   // Local /posters file first, then the remote fallback, then nothing.
   const [posterSrc, setPosterSrc] = useState(reel.poster)
   const onPosterError = () =>
@@ -24,8 +26,10 @@ export default function VideoCard({ reel, near, playing, active }) {
   // (Phones also cap how many reels load at once — see useVideoSlot.)
   const showMp4 = useVideoSlot(active && playing && hasMp4 === true)
   const showIg  = near && hasMp4 === false && reel.type === 'instagram' && !reel.image
-  // YouTube players are heavy — only the front card mounts one; the rest show their poster
-  const showYt  = active && shouldPlay && reel.type === 'youtube' && !reel.video
+  // YouTube players are heavy — only the front card mounts one; the rest show
+  // their poster. Phones, tablets and low-resource devices never play one
+  // inline: the poster stays and a tap opens it (the full player loads then).
+  const showYt  = active && shouldPlay && reel.type === 'youtube' && !reel.video && !TOUCH && !LITE
 
   const mediaRef = useRef(null)
 

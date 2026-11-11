@@ -23,14 +23,33 @@ export function initSmoothScroll() {
   }
 }
 
-export function scrollToTarget(target) {
+export function scrollToTarget(target, retries = 0) {
   if (typeof target === 'number') {
     if (lenis) lenis.scrollTo(target, { duration: 1.4 })
     else window.scrollTo({ top: target, behavior: reducedMotion() ? 'auto' : 'smooth' })
     return
   }
   const el = typeof target === 'string' ? document.querySelector(target) : target
-  if (!el) return
+  if (!el) {
+    // Maybe inside a section that isn't built yet (components/Deferred.jsx):
+    // ask for them all, then try again when one lands (its code may still be
+    // downloading on a slow connection) — or after a while anyway, ~10 s in all
+    if (typeof target === 'string' && retries < 20) {
+      window.dispatchEvent(new Event('axamp:need-sections'))
+      let done = false
+      const retry = () => {
+        if (done) return
+        done = true
+        clearTimeout(fallback)
+        window.removeEventListener('axamp:sections-built', retry)
+        // A beat for the new section's pins to be measured
+        setTimeout(() => scrollToTarget(target, retries + 1), 50)
+      }
+      const fallback = setTimeout(retry, 450)
+      window.addEventListener('axamp:sections-built', retry)
+    }
+    return
+  }
   // Re-measure first: right after a page change Lenis still clamps to the old page's height
   lenis?.resize()
   if (lenis) lenis.scrollTo(el, { offset: 0, duration: 1.6 })
@@ -47,3 +66,27 @@ export function lockScroll(locked) {
   if (lenis) locked ? lenis.stop() : lenis.start()
   document.documentElement.classList.toggle('is-locked', locked)
 }
+
+/* Re-measure every ScrollTrigger (pins, scrubs, slides) — once per frame at
+ * most. A full refresh measures the whole page; on the home page several
+ * parts each asked for one while it loaded (the slide setup twice, the lead
+ * engine, the fonts landing), and on a slow phone each one blocked the page
+ * for up to ~2 s. Requests made in the same frame now share one refresh. */
+let refreshFrame = 0
+export function requestScrollRefresh() {
+  if (refreshFrame) return
+  refreshFrame = requestAnimationFrame(() => {
+    refreshFrame = 0
+    ScrollTrigger.refresh()
+  })
+}
+
+/* The page's scroll position, kept by one passive listener. Per-frame code
+ * (the reel rings) reads this instead of window.scrollY: reading scrollY
+ * after styles have changed forces the browser to redo layout on the spot,
+ * and every ring did that every frame. */
+let pageScrollY = typeof window !== 'undefined' ? window.scrollY : 0
+if (typeof window !== 'undefined') {
+  window.addEventListener('scroll', () => { pageScrollY = window.scrollY }, { passive: true })
+}
+export const getScrollY = () => pageScrollY

@@ -5,6 +5,8 @@ import { useGSAP } from '@gsap/react'
 
 import { resolveReel } from '../data/work'
 import { useInView, useIsCarousel } from '../lib/hooks'
+import { LITE } from '../lib/device'
+import { getScrollY } from '../lib/scroll'
 import { lazyPage } from '../lib/lazyPage'
 import IntroPanel, { PillLabel } from './IntroPanel'
 import VideoCard from './VideoCard'
@@ -131,16 +133,29 @@ function ReelRing({ reels, inView, cardHeight, tone, tilt = -9, direction = 1, m
       if (!N) return
 
       const step = 360 / N
+      // Reduced motion: the ring holds still unless dragged (no auto or scroll spin)
+      const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
       let radius = 0
       let rot = rotRef.current
-      let vel = BASE_SPEED * direction
-      let lastScroll = window.scrollY
+      let vel = still ? 0 : BASE_SPEED * direction
+      let lastScroll = getScrollY()
       let lastFront = -1
       let hovering = false
       let focused = false
       let drag = null
       let draggedPx = 0
+      // Last values written per card: a style is only touched when it visibly
+      // changes. Cards away from the front barely lift, and their shade moves
+      // in steps too small to see, so most frames rewrite only the ring itself
+      // (it used to rewrite every card's transform and shade every frame).
+      const lastCard = new Array(N).fill('')
+      const lastShade = new Array(N).fill(-1)
+      // Low-resource devices redraw the spin every other frame (≈30 fps):
+      // at 11°/s that's a third of a degree per step, still smooth
+      let pendingMs = 0
+      let pendingScroll = 0
+      let frame = 0
 
       const render = () => {
         rotRef.current = rot
@@ -152,10 +167,18 @@ function ReelRing({ reels, inView, cardHeight, tone, tilt = -9, direction = 1, m
           const facing = (Math.cos(((i * step + rot) * Math.PI) / 180) + 1) / 2
           // The card at the front lifts out of the ring a little
           const lift = facing ** 10
-          cards[i].style.transform =
-            `rotateY(${i * step}deg) translateZ(${radius + lift * radius * FRONT_LIFT}px) scale(${1 + lift * FRONT_SCALE})`
-          // Cards darken as they turn away, like the back of the ring
-          shades[i].style.opacity = ((1 - facing) * 0.8).toFixed(3)
+          const card =
+            `rotateY(${i * step}deg) translateZ(${(radius + lift * radius * FRONT_LIFT).toFixed(1)}px) scale(${(1 + lift * FRONT_SCALE).toFixed(4)})`
+          if (card !== lastCard[i]) {
+            lastCard[i] = card
+            cards[i].style.transform = card
+          }
+          // Cards darken as they turn away, like the back of the ring (1/50 steps)
+          const shade = Math.round((1 - facing) * 0.8 * 50) / 50
+          if (shade !== lastShade[i]) {
+            lastShade[i] = shade
+            shades[i].style.opacity = String(shade)
+          }
         }
 
         const f = ((Math.round(-rot / step) % N) + N) % N
@@ -195,20 +218,30 @@ function ReelRing({ reels, inView, cardHeight, tone, tilt = -9, direction = 1, m
       }
 
       const tick = (_time, deltaTime) => {
-        // Track scroll even off-screen so there's no jump on entry
-        const y = window.scrollY
+        // Track scroll even off-screen so there's no jump on entry. The shared
+        // value (lib/scroll) costs nothing to read; window.scrollY here forced a
+        // fresh layout in every ring on every frame.
+        const y = getScrollY()
         const scrolled = Math.min(Math.abs(y - lastScroll), 120)
         lastScroll = y
 
         if (!inViewRef.current || !radius || drag) return
 
-        const dt = Math.min(deltaTime, 50) / 1000
-        const target = BASE_SPEED * direction * (hovering || focused ? HOVER_FACTOR : 1)
+        pendingMs += deltaTime
+        pendingScroll += scrolled
+        if (LITE && ++frame % 2) return
+        const dt = Math.min(pendingMs, LITE ? 100 : 50) / 1000
+        const boost = Math.min(pendingScroll, 120)
+        pendingMs = 0
+        pendingScroll = 0
+        const target = still ? 0 : BASE_SPEED * direction * (hovering || focused ? HOVER_FACTOR : 1)
 
         // Ease toward the target speed — also bleeds off drag inertia
         vel += (target - vel) * (1 - Math.exp(-dt * 3))
+        // Held still (reduced motion, once a flick has died down): nothing to redraw
+        if (still && Math.abs(vel) < 0.01) return
 
-        rot = (rot + vel * dt + scrolled * SCROLL_BOOST) % 360
+        rot = (rot + vel * dt + (still ? 0 : boost * SCROLL_BOOST)) % 360
         render()
       }
 
@@ -402,6 +435,9 @@ function PillarDesktop({ pillar, index, reels, inView }) {
   const progressRef = useRef(null)
 
   const [active, setActive] = useState(0)
+  // Like phones: a ring (8 full-size cards on 3D layers) is only built while
+  // its section is within a screen of the viewport — not all six at load
+  const near = useInView(sectionRef, '100% 0px')
 
   useGSAP(
     () => {
@@ -418,8 +454,10 @@ function PillarDesktop({ pillar, index, reels, inView }) {
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          // Drives the IntroPanel strikethrough + answer reveal
-          section.style.setProperty('--p', self.progress)
+          // Drives the IntroPanel strikethrough + answer reveal. Set on the
+          // intro only: --p is inherited, so setting it on the section made
+          // the browser restyle the whole ring (every card) on each scroll frame.
+          introRef.current?.style.setProperty('--p', self.progress)
 
           if (progressRef.current) {
             progressRef.current.style.transform = `scaleX(${self.progress})`
@@ -498,14 +536,14 @@ function PillarDesktop({ pillar, index, reels, inView }) {
         className={`absolute inset-y-0 z-10 ${flip ? 'left-0' : 'right-0'}`}
         style={{ [flip ? 'right' : 'left']: 'calc(var(--gutter) + min(420px, 32vw))' }}
       >
-        <ReelRing
+        {near && <ReelRing
           reels={reels}
           inView={inView}
           tone={pillar.tone}
           cardHeight="min(60vh, 600px)"
           direction={flip ? -1 : 1}
           onActiveChange={setActive}
-        />
+        />}
       </div>
       
 

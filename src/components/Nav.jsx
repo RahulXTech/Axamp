@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import {
-  FaArrowRight,
-  FaBoxOpen,
-  FaCalculator,
-  FaChevronRight,
-  FaEnvelope,
-  FaHouse,
-  FaUsers,
-  FaWandMagicSparkles,
-} from 'react-icons/fa6'
+import { FaArrowRight, FaChevronRight } from 'react-icons/fa6'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -22,16 +13,6 @@ import { lockScroll } from '../lib/scroll'
 import { pageOf, pages, useGo } from '../lib/nav'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
-
-// Icon beside each page in the mobile menu
-const pageIcons = {
-  '/': FaHouse,
-  '/services': FaWandMagicSparkles,
-  '/packages': FaBoxOpen,
-  '/build-package': FaCalculator,
-  '/about': FaUsers,
-  '/contact': FaEnvelope,
-}
 
 export default function Nav() {
   const headerRef = useRef(null)
@@ -271,7 +252,7 @@ export default function Nav() {
           <nav aria-label="Primary" className="hidden min-[1100px]:block">
             <ul
               className="
-                relative m-0 flex list-none items-center gap-1
+                relative m-0 flex list-none items-center gap-1 min-[1280px]:gap-0.5
                 rounded-full border border-white/[0.07]
                 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]
                 p-1
@@ -297,7 +278,6 @@ export default function Nav() {
               {pages.map((page) => {
                 const lit = indicatorTarget === page.to
                 const current = active === page.to
-                const Icon = pageIcons[page.to]
 
                 return (
                   <li key={page.to}>
@@ -310,9 +290,9 @@ export default function Nav() {
                       onBlur={() => setHovered(null)}
                       aria-current={active === page.to ? 'page' : undefined}
                       className={`
-                        group relative z-[1]
-                        flex items-center gap-2
-                        h-10 px-3.5 min-[1280px]:px-3
+                        relative z-[1]
+                        flex items-center
+                        h-10 px-3 min-[1200px]:px-4
                         whitespace-nowrap
                         rounded-full
                         text-[13px] font-semibold tracking-[0.02em]
@@ -320,17 +300,6 @@ export default function Nav() {
                         ${lit ? 'text-white' : 'text-white/60 hover:text-white'}
                       `}
                     >
-                      {Icon && (
-                        <Icon
-                          aria-hidden="true"
-                          className={`
-                            hidden min-[1280px]:block
-                            h-[13px] w-auto shrink-0 -translate-y-[0.5px]
-                            transition-[color,transform] duration-300 ease-[var(--ease)]
-                            ${lit ? 'scale-110 text-[var(--cyan)]' : 'text-white/40 group-hover:text-white/80'}
-                          `}
-                        />
-                      )}
                       {page.label}
 
                       {/* Stays on the current page even while another link is hovered */}
@@ -545,13 +514,12 @@ export default function Nav() {
             <ul className="m-0 list-none p-1.5">
               {pages.map((page) => {
                 const current = active === page.to
-                const Icon = pageIcons[page.to] ?? FaChevronRight
 
                 return (
                   <li
                     key={page.to}
                     data-m-item
-                    className="relative [&+&]:before:absolute [&+&]:before:-top-px [&+&]:before:left-[62px] [&+&]:before:right-3 [&+&]:before:h-px [&+&]:before:bg-white/[0.06]"
+                    className="relative [&+&]:before:absolute [&+&]:before:-top-px [&+&]:before:left-4 [&+&]:before:right-3 [&+&]:before:h-px [&+&]:before:bg-white/[0.06]"
                   >
                     <a
                       href={page.to}
@@ -559,8 +527,8 @@ export default function Nav() {
                       aria-current={current ? 'page' : undefined}
                       className={`
                         group flex items-center gap-3.5
-                        rounded-2xl px-2.5 py-2
-                        [@media(max-height:700px)]:py-2
+                        rounded-2xl px-4 py-3.5
+                        [@media(max-height:700px)]:py-2.5
                         transition-[background-color,transform] duration-300 ease-[var(--ease)]
                         active:scale-[0.98]
                         ${
@@ -570,20 +538,6 @@ export default function Nav() {
                         }
                       `}
                     >
-                      <span
-                        className={`
-                          grid h-10 w-10 shrink-0 place-items-center rounded-xl
-                          transition-colors duration-300
-                          ${
-                            current
-                              ? 'bg-[var(--cyan)] text-[var(--navy)] shadow-[0_0_18px_-4px_rgba(83,247,251,0.8)]'
-                              : 'border border-white/[0.07] bg-white/[0.04] text-white/70 group-hover:text-[var(--cyan)]'
-                          }
-                        `}
-                      >
-                        <Icon aria-hidden="true" className="h-4 w-auto" />
-                      </span>
-
                       <span className="flex-1 text-[17px] font-semibold tracking-[-0.01em] text-white">
                         {page.label}
                       </span>

@@ -33,11 +33,14 @@ ErrorDocument 404 /index.html
   # /real-estate is the home page
   RewriteRule ^real-estate/*$ https://%{HTTP_HOST}/ [R=301,L]
 
+  # Removed pages: /proof and /lead-leak are sections of the home page now
+  RewriteRule ^(proof|lead-leak)/*$ https://%{HTTP_HOST}/ [R=301,L]
+
   # Pages have no trailing slash: /about/ → /about
-  RewriteRule ^(hospital|university|services|packages|lead-leak|build-package|build-package/report|about|contact)/+$ https://%{HTTP_HOST}/$1 [R=301,L]
+  RewriteRule ^(hospital|university|services|packages|build-package|build-package/report|about|contact)/+$ https://%{HTTP_HOST}/$1 [R=301,L]
 
   # React Router pages — keep this list in step with the routes in src/App.jsx
-  RewriteRule ^(hospital|university|services|packages|lead-leak|build-package|build-package/report|about|contact)$ index.html [L]
+  RewriteRule ^(hospital|university|services|packages|build-package|build-package/report|about|contact)$ index.html [L]
 
   # Anything else that isn't a real file falls through to a 404 (ErrorDocument above)
 </IfModule>
